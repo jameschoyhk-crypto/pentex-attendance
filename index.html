@@ -17,8 +17,7 @@
     --bg: #f1f5f9; --card: #ffffff; --border: #e2e8f0;
     --text: #1e293b; --muted: #64748b; --radius: 12px;
   }
-  html { height: 100%; }
-  body { min-height: 100%; height: auto; }
+  html, body { height: 100%; }
   body { font-family: -apple-system, BlinkMacSystemFont, "Noto Sans TC", "PingFang HK", sans-serif;
          background: var(--bg); color: var(--text);
          -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
@@ -238,14 +237,14 @@
 
   /* ══════════════════════════════════════
      響應式設計 — 四個裝置斷點
-     手機      : < 600px
-     手機橫向  : 600px – 767px
+     手機直向  : < 480px
+     手機橫向  : 480px – 767px
      iPad/平板 : 768px – 1023px
      電腦      : ≥ 1024px
   ══════════════════════════════════════ */
 
-  /* ── 手機（< 600px）── */
-  @media (max-width: 599px) {
+  /* ── 手機直向（< 480px）── */
+  @media (max-width: 479px) {
     body { font-size: 15px; }
     .content { padding: 12px; padding-bottom: 88px; max-width: 100%; }
     .navbar { height: 52px; padding: 0 14px; }
@@ -282,8 +281,8 @@
     .toast { bottom: 76px; font-size: 13px; }
   }
 
-  /* ── 手機橫向 / 小平板（600px – 767px）── */
-  @media (min-width: 600px) and (max-width: 767px) {
+  /* ── 手機橫向 / 小平板（480px – 767px）── */
+  @media (min-width: 480px) and (max-width: 767px) {
     .content { padding: 14px; padding-bottom: 88px; max-width: 100%; }
     .navbar { height: 54px; }
     .navbar-title { font-size: 17px; }
@@ -445,9 +444,15 @@
       <div class="card-title">🔍 查閱出席記錄</div>
       <div class="form-row">
         <div class="form-group">
-          <label>日期</label>
-          <input type="date" id="hist-date">
+          <label>開始日期</label>
+          <input type="date" id="hist-start">
         </div>
+        <div class="form-group">
+          <label>結束日期</label>
+          <input type="date" id="hist-end">
+        </div>
+      </div>
+      <div class="form-row">
         <div class="form-group">
           <label>年級（可選）</label>
           <select id="hist-grade"><option value="">— 所有年級 —</option></select>
@@ -456,7 +461,7 @@
       <button class="btn btn-primary btn-full" onclick="loadHistory()">查詢</button>
     </div>
     <div id="hist-result">
-      <div class="empty-state"><div class="icon">🔍</div><p>請選擇日期後按「查詢」</p></div>
+      <div class="empty-state"><div class="icon">🔍</div><p>請選擇日期範圍後按「查詢」</p></div>
     </div>
   </div>
 
@@ -828,18 +833,21 @@ async function saveAttendance() {
 
 // ══ 頁面 2：查閱 ══════════════════════════════════════════════
 async function loadHistory() {
-  const date  = document.getElementById("hist-date").value;
-  const grade = document.getElementById("hist-grade").value;
-  if (!date) { showToast("請選擇日期", "error"); return; }
+  const startDate = document.getElementById("hist-start").value;
+  const endDate   = document.getElementById("hist-end").value;
+  const grade     = document.getElementById("hist-grade").value;
+  if (!startDate) { showToast("請選擇開始日期", "error"); return; }
+  if (!endDate)   { showToast("請選擇結束日期", "error"); return; }
+  if (startDate > endDate) { showToast("開始日期不能大於結束日期", "error"); return; }
 
   const wrap = document.getElementById("hist-result");
   wrap.innerHTML = `<div class="loading"><div class="spinner"></div>查詢中...</div>`;
 
   try {
-    const res = await apiGet({ action: "getAttendance", date, grade });
+    const res = await apiGet({ action: "getAttendanceRange", startDate, endDate, grade });
     if (!res.success) { showToast("查詢失敗", "error"); return; }
     if (res.records.length === 0) {
-      wrap.innerHTML = `<div class="empty-state"><div class="icon">📭</div><p>該日期暫無記錄</p></div>`;
+      wrap.innerHTML = `<div class="empty-state"><div class="icon">💭</div><p>該日期範圍暫無記錄</p></div>`;
       return;
     }
     const present = res.records.filter(r => r.status === "出席").length;
