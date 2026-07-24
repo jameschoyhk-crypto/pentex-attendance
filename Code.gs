@@ -360,10 +360,17 @@ function getAttendanceRange(startDate, endDate, grade) {
   for (let i = 1; i < data.length; i++) {
     const row = data[i];
     if (!row[0]) continue;
-    if (row[0] < startDate || row[0] > endDate) continue;
+    // 將 Date 物件或其他格式統一轉換為 yyyy-MM-dd 字串
+    let rowDate;
+    if (row[0] instanceof Date) {
+      rowDate = Utilities.formatDate(row[0], "Asia/Hong_Kong", "yyyy-MM-dd");
+    } else {
+      rowDate = String(row[0]);
+    }
+    if (rowDate < startDate || rowDate > endDate) continue;
     if (grade && row[2] !== grade) continue;
     records.push({
-      date: row[0], weekday: row[1], grade: row[2],
+      date: rowDate, weekday: row[1], grade: row[2],
       name: row[3], status: row[4], remark: row[5] || "", timestamp: row[6] || ""
     });
   }
