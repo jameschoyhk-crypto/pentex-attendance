@@ -1,0 +1,1174 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#2563eb">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="出席系統">
+<meta name="description" content="補習社出席記錄系統">
+<title>補習社出席系統</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --primary: #2563eb; --primary-dark: #1d4ed8;
+    --success: #16a34a; --danger: #dc2626; --warning: #d97706;
+    --bg: #f1f5f9; --card: #ffffff; --border: #e2e8f0;
+    --text: #1e293b; --muted: #64748b; --radius: 12px;
+  }
+  html { height: 100%; }
+  body { min-height: 100%; height: auto; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Noto Sans TC", "PingFang HK", sans-serif;
+         background: var(--bg); color: var(--text);
+         -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+
+  /* ── 頂部導航 ── */
+  .navbar {
+    background: var(--primary); color: white;
+    padding: 0 16px; display: flex; align-items: center; gap: 10px;
+    height: 56px; box-shadow: 0 2px 8px rgba(0,0,0,.2);
+    position: sticky; top: 0; z-index: 100;
+  }
+  .navbar-title { font-size: 17px; font-weight: 700; flex: 1; }
+
+  /* ── 底部標籤欄 ── */
+  .tab-bar {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: white; display: flex; border-top: 1px solid var(--border);
+    z-index: 100; box-shadow: 0 -2px 8px rgba(0,0,0,.08);
+  }
+  .tab-item {
+    flex: 1; display: flex; flex-direction: column; align-items: center;
+    justify-content: center; padding: 8px 4px; cursor: pointer;
+    color: var(--muted); font-size: 11px; gap: 2px;
+    border: none; background: none; -webkit-tap-highlight-color: transparent;
+    transition: color .2s;
+  }
+  .tab-item.active { color: var(--primary); }
+  .tab-item .ti { font-size: 20px; }
+
+  /* ── 主內容 ── */
+  .content { padding: 16px; padding-bottom: 80px; max-width: 720px; margin: 0 auto; }
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* ── 卡片 ── */
+  .card { background: var(--card); border-radius: var(--radius);
+          box-shadow: 0 1px 4px rgba(0,0,0,.08); padding: 18px; margin-bottom: 16px; }
+  .card-title { font-size: 15px; font-weight: 700; margin-bottom: 14px;
+                display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+  /* ── 表單 ── */
+  label { font-size: 13px; font-weight: 600; color: var(--muted); display: block; margin-bottom: 5px; }
+  select, input[type="date"], input[type="text"], textarea {
+    width: 100%; padding: 10px 12px; border: 1.5px solid var(--border);
+    border-radius: 8px; font-size: 14px; color: var(--text);
+    background: white; transition: border-color .2s; font-family: inherit;
+  }
+  select:focus, input:focus, textarea:focus { outline: none; border-color: var(--primary); }
+  textarea { resize: vertical; min-height: 80px; }
+  .form-row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+  .form-group { flex: 1; min-width: 140px; }
+
+  /* ── 按鈕 ── */
+  .btn { padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 600;
+         cursor: pointer; border: none; transition: all .2s; display: inline-flex;
+         align-items: center; gap: 6px; font-family: inherit;
+         -webkit-tap-highlight-color: transparent; }
+  .btn-primary { background: var(--primary); color: white; }
+  .btn-primary:hover { background: var(--primary-dark); }
+  .btn-success { background: var(--success); color: white; }
+  .btn-success:hover { background: #15803d; }
+  .btn-danger  { background: var(--danger); color: white; }
+  .btn-outline { background: white; color: var(--primary); border: 1.5px solid var(--primary); }
+  .btn-sm { padding: 6px 14px; font-size: 13px; }
+  .btn-full { width: 100%; justify-content: center; }
+  .btn:disabled { opacity: .5; cursor: not-allowed; }
+  .btn:active { transform: scale(.97); }
+
+  /* ── 學生出席列表 ── */
+  .att-list { display: flex; flex-direction: column; gap: 8px; }
+  .student-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 14px; border-radius: 10px; border: 1.5px solid var(--border);
+    background: white; transition: border-color .2s; gap: 10px; flex-wrap: wrap;
+  }
+  .student-row.present { border-color: #86efac; background: #f0fdf4; }
+  .student-row.absent  { border-color: #fca5a5; background: #fff1f2; }
+  .student-info { display: flex; align-items: center; gap: 10px; flex: 1; }
+  .student-name { font-size: 15px; font-weight: 600; }
+  .grade-badge { font-size: 11px; font-weight: 700; padding: 2px 8px;
+                 border-radius: 20px; background: #dbeafe; color: #1d4ed8; }
+  .status-btns { display: flex; gap: 8px; }
+  .status-btn {
+    padding: 6px 16px; border-radius: 8px; font-size: 13px; font-weight: 600;
+    cursor: pointer; border: 1.5px solid transparent; transition: all .2s; font-family: inherit;
+  }
+  .status-btn.present-btn { border-color: #86efac; color: #15803d; background: white; }
+  .status-btn.present-btn.active { background: #16a34a; color: white; border-color: #16a34a; }
+  .status-btn.absent-btn  { border-color: #fca5a5; color: #dc2626; background: white; }
+  .status-btn.absent-btn.active  { background: #dc2626; color: white; border-color: #dc2626; }
+
+  /* ── 統計條 ── */
+  .stats-bar { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
+  .stat-chip { padding: 7px 14px; border-radius: 20px; font-size: 13px; font-weight: 700;
+               display: flex; align-items: center; gap: 5px; }
+  .stat-chip.total   { background: #dbeafe; color: #1e40af; }
+  .stat-chip.present { background: #dcfce7; color: #15803d; }
+  .stat-chip.absent  { background: #fee2e2; color: #b91c1c; }
+  .stat-chip.pending { background: #fef9c3; color: #92400e; }
+
+  /* ── 表格 ── */
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th { background: #f8fafc; font-weight: 700; padding: 11px 12px;
+       text-align: left; border-bottom: 2px solid var(--border); white-space: nowrap; }
+  td { padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #f8fafc; }
+
+  /* ── 標籤 ── */
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 20px;
+           font-size: 12px; font-weight: 700; }
+  .badge-present { background: #dcfce7; color: #15803d; }
+  .badge-absent  { background: #fee2e2; color: #b91c1c; }
+  .badge-grade   { background: #dbeafe; color: #1d4ed8; }
+
+  /* ── 進度條 ── */
+  .progress-bar { height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 4px; transition: width .4s; }
+  .progress-fill.high   { background: #16a34a; }
+  .progress-fill.medium { background: #d97706; }
+  .progress-fill.low    { background: #dc2626; }
+
+  /* ── 學生個人查詢 ── */
+  .student-header {
+    display: flex; align-items: center; gap: 14px;
+    padding: 16px; background: #eff6ff; border-radius: 10px; margin-bottom: 16px;
+  }
+  .student-header-avatar {
+    width: 52px; height: 52px; border-radius: 50%; background: #2563eb;
+    color: white; font-size: 22px; display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .student-header-name { font-size: 20px; font-weight: 700; }
+  .student-header-sub  { font-size: 13px; color: var(--muted); margin-top: 2px; }
+  .summary-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 14px; }
+  .summary-item { background: #f8fafc; border-radius: 10px; padding: 12px 8px; text-align: center; }
+  .summary-num  { font-size: 26px; font-weight: 700; }
+  .summary-label{ font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  /* ── 出席日期 chip ── */
+  .day-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .day-chip { padding: 4px 10px; border-radius: 16px; font-size: 12px; font-weight: 600; }
+  .day-chip.present { background: #dcfce7; color: #15803d; }
+  .day-chip.absent  { background: #fee2e2; color: #b91c1c; }
+
+  /* ── 備註編輯 ── */
+  .remark-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border);
+    margin-bottom: 6px; background: white;
+  }
+  .remark-row:hover { background: #f8fafc; }
+  .remark-name { font-size: 14px; font-weight: 600; flex: 1; }
+  .remark-text { font-size: 13px; color: var(--muted); flex: 2; }
+  .remark-edit-btn {
+    background: none; border: 1px solid var(--border); border-radius: 6px;
+    padding: 4px 10px; font-size: 12px; cursor: pointer; color: var(--primary);
+    font-family: inherit; white-space: nowrap;
+  }
+  .remark-edit-btn:hover { background: #eff6ff; }
+
+  /* ── Toast ── */
+  .toast {
+    position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) translateY(20px);
+    background: #1e293b; color: white; padding: 12px 20px; border-radius: 8px;
+    font-size: 14px; z-index: 500; opacity: 0; transition: all .3s;
+    white-space: nowrap; pointer-events: none;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .toast.success { background: #16a34a; }
+  .toast.error   { background: #dc2626; }
+
+  /* ── Modal ── */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,.5);
+    z-index: 400; display: none; align-items: flex-end; justify-content: center;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal {
+    background: white; border-radius: 16px 16px 0 0;
+    padding: 20px; width: 100%; max-width: 720px; max-height: 80vh; overflow-y: auto;
+  }
+  .modal-title {
+    font-size: 16px; font-weight: 700; margin-bottom: 16px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .modal-close { background: none; border: none; font-size: 22px; cursor: pointer; color: var(--muted); }
+
+  /* ── 載入 / 空狀態 ── */
+  .loading { text-align: center; padding: 40px; color: var(--muted); font-size: 14px; }
+  .spinner { width: 34px; height: 34px; border: 3px solid var(--border);
+             border-top-color: var(--primary); border-radius: 50%;
+             animation: spin .8s linear infinite; margin: 0 auto 12px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .empty-state { text-align: center; padding: 44px 20px; color: var(--muted); }
+  .empty-state .icon { font-size: 46px; margin-bottom: 12px; }
+  .empty-state p { font-size: 14px; }
+
+  /* ── 分隔線 ── */
+  .divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
+
+  /* ── PWA 安裝提示 ── */
+  .install-banner {
+    background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 10px;
+    padding: 12px 14px; display: flex; align-items: center; gap: 10px; margin-bottom: 16px;
+  }
+  .install-banner-text { flex: 1; font-size: 13px; }
+  .install-banner-text strong { display: block; font-size: 14px; margin-bottom: 2px; }
+
+  /* ══════════════════════════════════════
+     響應式設計 — 三個裝置斷點
+     手機  : < 600px
+     iPad  : 600px – 1024px
+     電腦  : > 1024px
+  ══════════════════════════════════════ */
+
+  /* ══════════════════════════════════════
+     響應式設計 — 四個裝置斷點
+     手機      : < 600px
+     手機橫向  : 600px – 767px
+     iPad/平板 : 768px – 1023px
+     電腦      : ≥ 1024px
+  ══════════════════════════════════════ */
+
+  /* ── 手機（< 600px）── */
+  @media (max-width: 599px) {
+    body { font-size: 15px; }
+    .content { padding: 12px; padding-bottom: 88px; max-width: 100%; }
+    .navbar { height: 52px; padding: 0 14px; }
+    .navbar-title { font-size: 17px; }
+    .card { padding: 14px; margin-bottom: 12px; border-radius: 10px; }
+    .card-title { font-size: 15px; margin-bottom: 12px; }
+    label { font-size: 14px; margin-bottom: 6px; }
+    .form-row { flex-direction: column; gap: 10px; }
+    .form-group { min-width: unset; width: 100%; }
+    select, input[type="date"], input[type="text"], textarea {
+      font-size: 16px; padding: 12px 14px; border-radius: 10px; height: 48px;
+    }
+    textarea { height: auto; min-height: 80px; }
+    .btn { padding: 13px 18px; font-size: 15px; border-radius: 10px; min-height: 48px; }
+    .btn-sm { padding: 10px 14px; font-size: 14px; min-height: 42px; }
+    .student-row { padding: 12px 14px; }
+    .student-name { font-size: 16px; }
+    .grade-badge { font-size: 12px; padding: 3px 10px; }
+    .status-btn { padding: 10px 16px; font-size: 14px; min-height: 42px; }
+    .tab-item { font-size: 11px; padding: 8px 4px; }
+    .tab-item .ti { font-size: 22px; }
+    .summary-num { font-size: 24px; }
+    .summary-label { font-size: 11px; }
+    .summary-item { padding: 12px 6px; }
+    table { font-size: 13px; }
+    th, td { padding: 9px 8px; }
+    .student-header-name { font-size: 17px; }
+    .student-header-avatar { width: 44px; height: 44px; font-size: 18px; }
+    .empty-state { padding: 28px 16px; }
+    .empty-state .icon { font-size: 40px; }
+    .empty-state p { font-size: 14px; }
+    .remark-name { font-size: 14px; }
+    .remark-text { font-size: 13px; }
+    .toast { bottom: 76px; font-size: 13px; }
+  }
+
+  /* ── 手機橫向 / 小平板（600px – 767px）── */
+  @media (min-width: 600px) and (max-width: 767px) {
+    .content { padding: 14px; padding-bottom: 88px; max-width: 100%; }
+    .navbar { height: 54px; }
+    .navbar-title { font-size: 17px; }
+    .card { padding: 16px; }
+    .card-title { font-size: 15px; }
+    label { font-size: 14px; }
+    .form-row { flex-wrap: wrap; gap: 12px; }
+    .form-group { min-width: 180px; flex: 1; }
+    select, input[type="date"], input[type="text"], textarea {
+      font-size: 15px; padding: 11px 13px; height: 46px;
+    }
+    textarea { height: auto; }
+    .btn { padding: 12px 20px; font-size: 15px; min-height: 46px; }
+    .btn-sm { padding: 9px 14px; font-size: 14px; }
+    .student-name { font-size: 15px; }
+    .status-btn { padding: 9px 16px; font-size: 14px; }
+    .tab-item { font-size: 12px; padding: 9px 4px; }
+    .tab-item .ti { font-size: 22px; }
+    .summary-num { font-size: 26px; }
+    table { font-size: 14px; }
+    th, td { padding: 10px 12px; }
+    .toast { bottom: 76px; }
+  }
+
+  /* ── iPad / 平板（768px – 1023px）── */
+  @media (min-width: 768px) and (max-width: 1023px) {
+    .content { padding: 20px 24px; padding-bottom: 90px; max-width: 800px; margin: 0 auto; }
+    .navbar { height: 58px; padding: 0 24px; }
+    .navbar-title { font-size: 18px; }
+    .card { padding: 20px 22px; }
+    .card-title { font-size: 16px; }
+    label { font-size: 14px; }
+    .form-row { flex-wrap: nowrap; gap: 14px; }
+    .form-group { min-width: 180px; }
+    select, input[type="date"], input[type="text"], textarea {
+      font-size: 15px; padding: 11px 14px; height: 46px;
+    }
+    textarea { height: auto; }
+    .btn { padding: 12px 22px; font-size: 15px; min-height: 46px; }
+    .btn-sm { padding: 8px 16px; font-size: 14px; }
+    .student-name { font-size: 16px; }
+    .student-row { padding: 14px 16px; }
+    .status-btn { padding: 9px 18px; font-size: 14px; }
+    .tab-item { font-size: 13px; padding: 10px 4px; }
+    .tab-item .ti { font-size: 24px; }
+    .summary-grid { grid-template-columns: repeat(3,1fr); gap: 12px; }
+    .summary-num { font-size: 30px; }
+    .summary-label { font-size: 12px; }
+    .summary-item { padding: 16px 10px; }
+    table { font-size: 14px; }
+    th, td { padding: 12px 14px; }
+    .modal { border-radius: 16px; max-width: 620px; }
+    .modal-overlay { align-items: center; }
+    .toast { bottom: 80px; }
+  }
+
+  /* ── 電腦（≥ 1024px）── */
+  @media (min-width: 1024px) {
+    body { display: flex; flex-direction: column; }
+    .navbar { padding: 0 32px; height: 60px; }
+    .navbar-title { font-size: 19px; }
+    .tab-bar {
+      position: fixed; top: 60px; left: 0; bottom: 0; right: auto;
+      width: 190px; flex-direction: column; justify-content: flex-start;
+      border-top: none; border-right: 1px solid var(--border);
+      padding: 16px 0; box-shadow: 2px 0 8px rgba(0,0,0,.06);
+    }
+    .tab-item {
+      flex-direction: row; justify-content: flex-start;
+      padding: 13px 20px; font-size: 14px; gap: 12px;
+      border-radius: 0; width: 100%;
+    }
+    .tab-item .ti { font-size: 20px; }
+    .tab-item.active { background: #eff6ff; border-left: 3px solid var(--primary); }
+    .content {
+      margin-left: 190px; padding: 28px 36px; padding-bottom: 40px; max-width: 1000px;
+    }
+    .card { padding: 24px 26px; }
+    .card-title { font-size: 16px; }
+    .form-row { flex-wrap: nowrap; gap: 16px; }
+    .form-group { min-width: 200px; }
+    select, input[type="date"], input[type="text"] { font-size: 15px; padding: 11px 14px; }
+    .btn { padding: 11px 24px; font-size: 15px; }
+    .btn-sm { padding: 7px 16px; font-size: 13px; }
+    .student-name { font-size: 16px; }
+    .status-btn { padding: 7px 20px; font-size: 14px; }
+    .summary-grid { grid-template-columns: repeat(3,1fr); gap: 14px; }
+    .summary-num { font-size: 32px; }
+    .summary-label { font-size: 12px; }
+    table { font-size: 15px; }
+    th, td { padding: 13px 16px; }
+    .toast { bottom: 32px; left: calc(190px + 50%); }
+    .modal-overlay { align-items: center; }
+    .modal { border-radius: 16px; max-width: 560px; max-height: 85vh; }
+  }
+</style>
+</head>
+<body>
+
+<!-- 頂部導航 -->
+<div class="navbar">
+  <span style="font-size:22px">📚</span>
+  <span class="navbar-title" id="navTitle">補習社出席系統</span>
+</div>
+
+<div class="content">
+
+  <!-- ══ 頁面 1：每日簽到 ══ -->
+  <div id="page-attendance" class="page active">
+    <div id="installBanner" class="install-banner" style="display:none">
+      <span style="font-size:26px">📲</span>
+      <div class="install-banner-text">
+        <strong>加到主畫面</strong>像 App 一樣使用，更方便！
+      </div>
+      <button class="btn btn-primary btn-sm" id="installBtn">安裝</button>
+      <button class="btn btn-outline btn-sm" onclick="document.getElementById('installBanner').style.display='none'">略過</button>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📋 每日出席登記</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>日期</label>
+          <input type="date" id="att-date">
+        </div>
+        <div class="form-group">
+          <label>年級</label>
+          <select id="att-grade"><option value="">— 選擇年級 —</option></select>
+        </div>
+      </div>
+      <button class="btn btn-primary btn-full" onclick="loadAttendance()">載入學生名單</button>
+    </div>
+
+    <div class="stats-bar" id="att-stats" style="display:none">
+      <div class="stat-chip total">👥 總人數: <span id="stat-total">0</span></div>
+      <div class="stat-chip present">✅ 出席: <span id="stat-present">0</span></div>
+      <div class="stat-chip absent">❌ 缺席: <span id="stat-absent">0</span></div>
+      <div class="stat-chip pending">⏳ 未標記: <span id="stat-pending">0</span></div>
+    </div>
+
+    <div id="att-list-wrap">
+      <div class="empty-state"><div class="icon">📝</div><p>請選擇日期和年級，然後按「載入學生名單」</p></div>
+    </div>
+
+    <div id="att-save-wrap" style="display:none; margin-top:4px;">
+      <div class="card" style="padding:14px">
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <button class="btn btn-outline btn-sm" onclick="markAll('出席')">✅ 全部出席</button>
+          <button class="btn btn-outline btn-sm" onclick="markAll('缺席')">❌ 全部缺席</button>
+          <button class="btn btn-success" onclick="saveAttendance()" style="margin-left:auto">💾 儲存記錄</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ 頁面 2：查閱記錄 ══ -->
+  <div id="page-history" class="page">
+    <div class="card">
+      <div class="card-title">🔍 查閱出席記錄</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>日期</label>
+          <input type="date" id="hist-date">
+        </div>
+        <div class="form-group">
+          <label>年級（可選）</label>
+          <select id="hist-grade"><option value="">— 所有年級 —</option></select>
+        </div>
+      </div>
+      <button class="btn btn-primary btn-full" onclick="loadHistory()">查詢</button>
+    </div>
+    <div id="hist-result">
+      <div class="empty-state"><div class="icon">🔍</div><p>請選擇日期後按「查詢」</p></div>
+    </div>
+  </div>
+
+  <!-- ══ 頁面 3：學生個人查詢 ══ -->
+  <div id="page-student" class="page">
+    <div class="card">
+      <div class="card-title">👤 學生個人出席查詢</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>年級</label>
+          <select id="stu-grade" onchange="loadStudentNameOptions()">
+            <option value="">— 選擇年級 —</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>學生姓名</label>
+          <select id="stu-name"><option value="">— 選擇學生 —</option></select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>開始日期</label>
+          <input type="date" id="stu-start">
+        </div>
+        <div class="form-group">
+          <label>結束日期</label>
+          <input type="date" id="stu-end">
+        </div>
+      </div>
+      <button class="btn btn-primary btn-full" onclick="queryStudent()">查詢</button>
+    </div>
+    <div id="stu-result">
+      <div class="empty-state"><div class="icon">👤</div><p>選擇學生和日期範圍後按「查詢」</p></div>
+    </div>
+  </div>
+
+  <!-- ══ 頁面 4：統計 ══ -->
+  <div id="page-summary" class="page">
+    <div class="card">
+      <div class="card-title">📊 出席統計</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>開始日期</label>
+          <input type="date" id="sum-start">
+        </div>
+        <div class="form-group">
+          <label>結束日期</label>
+          <input type="date" id="sum-end">
+        </div>
+        <div class="form-group">
+          <label>年級（可選）</label>
+          <select id="sum-grade"><option value="">— 所有年級 —</option></select>
+        </div>
+      </div>
+      <button class="btn btn-primary btn-full" onclick="loadSummary()">生成統計</button>
+    </div>
+    <div id="sum-result">
+      <div class="empty-state"><div class="icon">📊</div><p>請選擇日期範圍後按「生成統計」</p></div>
+    </div>
+  </div>
+
+  <!-- ══ 頁面 5：管理 ══ -->
+  <div id="page-manage" class="page">
+    <div class="card">
+      <div class="card-title">➕ 新增學生</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>年級</label>
+          <select id="mgr-grade">
+            <option value="F.1">F.1</option><option value="F.2">F.2</option>
+            <option value="F.3">F.3</option><option value="F.4">F.4</option>
+            <option value="F.5">F.5</option><option value="F.6">F.6</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>學生姓名</label>
+          <input type="text" id="mgr-name" placeholder="輸入姓名">
+        </div>
+        <div class="form-group">
+          <label>備註（可選）</label>
+          <input type="text" id="mgr-remark" placeholder="電話、備注等">
+        </div>
+      </div>
+      <button class="btn btn-success btn-full" onclick="addStudent()">➕ 新增學生</button>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📝 學生名單及備註管理</div>
+      <div class="form-row" style="margin-bottom:12px">
+        <div class="form-group">
+          <label>篩選年級</label>
+          <select id="mgr-filter-grade" onchange="loadStudentList()">
+            <option value="">— 所有年級 —</option>
+            <option value="F.1">F.1</option><option value="F.2">F.2</option>
+            <option value="F.3">F.3</option><option value="F.4">F.4</option>
+            <option value="F.5">F.5</option><option value="F.6">F.6</option>
+          </select>
+        </div>
+      </div>
+      <div id="mgr-list">
+        <div class="loading"><div class="spinner"></div>載入中...</div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /content -->
+
+<!-- 底部標籤欄 -->
+<div class="tab-bar">
+  <button class="tab-item active" onclick="switchTab('attendance',this)">
+    <span class="ti">📋</span>簽到
+  </button>
+  <button class="tab-item" onclick="switchTab('history',this)">
+    <span class="ti">🔍</span>查閱
+  </button>
+  <button class="tab-item" onclick="switchTab('student',this)">
+    <span class="ti">👤</span>學生
+  </button>
+  <button class="tab-item" onclick="switchTab('summary',this)">
+    <span class="ti">📊</span>統計
+  </button>
+  <button class="tab-item" onclick="switchTab('manage',this)">
+    <span class="ti">⚙️</span>管理
+  </button>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- 編輯學生資料 Modal -->
+<div class="modal-overlay" id="editStudentModal">
+  <div class="modal">
+    <div class="modal-title">
+      <span>✏️ 修改學生資料</span>
+      <button class="modal-close" onclick="closeEditStudentModal()">✕</button>
+    </div>
+    <input type="hidden" id="editOldGrade">
+    <input type="hidden" id="editOldName">
+    <div class="form-row">
+      <div class="form-group">
+        <label>年級</label>
+        <select id="editNewGrade">
+          <option value="F.1">F.1</option><option value="F.2">F.2</option>
+          <option value="F.3">F.3</option><option value="F.4">F.4</option>
+          <option value="F.5">F.5</option><option value="F.6">F.6</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>學生姓名</label>
+        <input type="text" id="editNewName" placeholder="輸入姓名">
+      </div>
+    </div>
+    <div class="form-group" style="margin-bottom:14px">
+      <label>備註（可選）</label>
+      <input type="text" id="editNewRemark" placeholder="電話、備注等">
+    </div>
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-outline btn-full" onclick="closeEditStudentModal()">取消</button>
+      <button class="btn btn-primary btn-full" onclick="saveEditStudent()">儲存修改</button>
+    </div>
+  </div>
+</div>
+
+<!-- 備註 Modal -->
+<div class="modal-overlay" id="remarkModal">
+  <div class="modal">
+    <div class="modal-title">
+      <span id="remarkModalTitle">編輯備註</span>
+      <button class="modal-close" onclick="closeRemarkModal()">✕</button>
+    </div>
+    <div class="form-group" style="margin-bottom:14px">
+      <label>備註內容</label>
+      <textarea id="remarkInput" placeholder="輸入備註（電話、特別事項等）"></textarea>
+    </div>
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-outline btn-full" onclick="closeRemarkModal()">取消</button>
+      <button class="btn btn-primary btn-full" onclick="saveRemark()">儲存備註</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══ 設定 ══════════════════════════════════════════════════════
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwf0fRAhoUtLV-DhRw4Iyl8LlM8TFInzWKmVLft1hkCn5EMjEFP_R2WAaADOXAaPWM/exec";
+
+// ══ 全域狀態 ══════════════════════════════════════════════════
+let currentStudents = [];
+let attendanceMap   = {};
+let remarkCtx       = null; // { type:"student"|"attendance", grade, name, date? }
+let deferredInstall = null;
+
+// ══ 初始化 ════════════════════════════════════════════════════
+document.addEventListener("DOMContentLoaded", () => {
+  const today = new Date();
+  const todayStr = formatDate(today);
+  const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+
+  document.getElementById("att-date").value   = todayStr;
+  document.getElementById("hist-date").value  = todayStr;
+  document.getElementById("stu-start").value  = formatDate(firstDay);
+  document.getElementById("stu-end").value    = todayStr;
+  document.getElementById("sum-start").value  = formatDate(firstDay);
+  document.getElementById("sum-end").value    = todayStr;
+
+  loadGrades();
+  loadStudentList();
+
+  // PWA 安裝提示
+  window.addEventListener("beforeinstallprompt", e => {
+    e.preventDefault();
+    deferredInstall = e;
+    document.getElementById("installBanner").style.display = "flex";
+  });
+  document.getElementById("installBtn").addEventListener("click", async () => {
+    if (!deferredInstall) return;
+    deferredInstall.prompt();
+    const { outcome } = await deferredInstall.userChoice;
+    if (outcome === "accepted") {
+      document.getElementById("installBanner").style.display = "none";
+      showToast("✅ 已加到主畫面！");
+    }
+    deferredInstall = null;
+  });
+});
+
+// ══ 頁面切換 ══════════════════════════════════════════════════
+const pageTitles = {
+  attendance: "每日出席登記", history: "查閱出席記錄",
+  student: "學生個人查詢", summary: "出席統計", manage: "學生管理"
+};
+function switchTab(name, btn) {
+  document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+  document.querySelectorAll(".tab-item").forEach(t => t.classList.remove("active"));
+  document.getElementById("page-" + name).classList.add("active");
+  btn.classList.add("active");
+  document.getElementById("navTitle").textContent = pageTitles[name] || "補習社出席系統";
+  if (name === "manage") loadStudentList();
+}
+
+// ══ API ═══════════════════════════════════════════════════════
+async function apiGet(params) {
+  const url = SCRIPT_URL + "?" + new URLSearchParams(params);
+  const res = await fetch(url);
+  return res.json();
+}
+async function apiPost(body) {
+  const res = await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify(body) });
+  return res.json();
+}
+
+// ══ 工具 ══════════════════════════════════════════════════════
+function formatDate(d) { return d.toISOString().split("T")[0]; }
+
+function showToast(msg, type = "success") {
+  const t = document.getElementById("toast");
+  t.textContent = msg; t.className = `toast ${type} show`;
+  setTimeout(() => t.className = "toast", 3000);
+}
+
+// ══ 載入年級 ══════════════════════════════════════════════════
+async function loadGrades() {
+  try {
+    const data = await apiGet({ action: "getGrades" });
+    if (!data.success) return;
+    ["att-grade", "hist-grade", "sum-grade", "stu-grade"].forEach(id => {
+      const sel = document.getElementById(id);
+      const first = sel.options[0];
+      sel.innerHTML = ""; sel.appendChild(first);
+      data.grades.forEach(g => { sel.appendChild(new Option(g, g)); });
+    });
+  } catch(e) {}
+}
+
+// ══ 頁面 1：簽到 ══════════════════════════════════════════════
+async function loadAttendance() {
+  const date  = document.getElementById("att-date").value;
+  const grade = document.getElementById("att-grade").value;
+  if (!date || !grade) { showToast("請選擇日期和年級", "error"); return; }
+
+  const wrap = document.getElementById("att-list-wrap");
+  wrap.innerHTML = `<div class="loading"><div class="spinner"></div>載入中...</div>`;
+  document.getElementById("att-stats").style.display = "none";
+  document.getElementById("att-save-wrap").style.display = "none";
+
+  try {
+    const [studRes, attRes] = await Promise.all([
+      apiGet({ action: "getStudents", grade }),
+      apiGet({ action: "getAttendance", date, grade })
+    ]);
+    if (!studRes.success) { showToast("載入失敗", "error"); return; }
+
+    currentStudents = studRes.students;
+    attendanceMap   = {};
+    if (attRes.success) attRes.records.forEach(r => { attendanceMap[r.name] = r.status; });
+
+    renderAttList();
+    document.getElementById("att-stats").style.display = "flex";
+    document.getElementById("att-save-wrap").style.display = "block";
+    updateStats();
+  } catch(e) {
+    wrap.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><p>載入失敗，請重試</p></div>`;
+  }
+}
+
+function renderAttList() {
+  const wrap = document.getElementById("att-list-wrap");
+  if (currentStudents.length === 0) {
+    wrap.innerHTML = `<div class="empty-state"><div class="icon">👤</div><p>此年級暫無學生</p></div>`;
+    return;
+  }
+  wrap.innerHTML = `<div class="att-list">` +
+    currentStudents.map(s => {
+      const st = attendanceMap[s.name] || "";
+      const rowCls = st === "出席" ? "present" : st === "缺席" ? "absent" : "";
+      return `<div class="student-row ${rowCls}" id="row-${CSS.escape(s.name)}">
+        <div class="student-info">
+          <span class="grade-badge">${s.grade}</span>
+          <span class="student-name">${s.name}</span>
+          ${s.remark ? `<span style="font-size:12px;color:var(--muted)">${s.remark}</span>` : ""}
+        </div>
+        <div class="status-btns">
+          <button class="status-btn present-btn ${st==='出席'?'active':''}" onclick="setStatus('${s.name}','出席')">✅ 出席</button>
+          <button class="status-btn absent-btn ${st==='缺席'?'active':''}" onclick="setStatus('${s.name}','缺席')">❌ 缺席</button>
+        </div>
+      </div>`;
+    }).join("") + `</div>`;
+}
+
+function setStatus(name, status) {
+  attendanceMap[name] = status;
+  const row = document.getElementById("row-" + CSS.escape(name));
+  if (row) {
+    row.className = "student-row " + (status === "出席" ? "present" : "absent");
+    row.querySelectorAll(".status-btn").forEach(b => b.classList.remove("active"));
+    row.querySelector(status === "出席" ? ".present-btn" : ".absent-btn").classList.add("active");
+  }
+  updateStats();
+}
+
+function markAll(status) { currentStudents.forEach(s => setStatus(s.name, status)); }
+
+function updateStats() {
+  const total   = currentStudents.length;
+  const present = currentStudents.filter(s => attendanceMap[s.name] === "出席").length;
+  const absent  = currentStudents.filter(s => attendanceMap[s.name] === "缺席").length;
+  document.getElementById("stat-total").textContent   = total;
+  document.getElementById("stat-present").textContent = present;
+  document.getElementById("stat-absent").textContent  = absent;
+  document.getElementById("stat-pending").textContent = total - present - absent;
+}
+
+async function saveAttendance() {
+  const date  = document.getElementById("att-date").value;
+  const grade = document.getElementById("att-grade").value;
+  const unmarked = currentStudents.filter(s => !attendanceMap[s.name]);
+  if (unmarked.length > 0) {
+    if (!confirm(`以下學生未標記：\n${unmarked.map(s=>s.name).join("、")}\n\n確定儲存？`)) return;
+  }
+  const records = currentStudents.map(s => ({ name: s.name, status: attendanceMap[s.name] || "缺席", remark: "" }));
+  const btn = document.querySelector("#att-save-wrap .btn-success");
+  btn.disabled = true; btn.textContent = "儲存中...";
+  try {
+    const res = await apiPost({ action: "saveAttendance", date, grade, records });
+    if (res.success) showToast(`✅ 已儲存！出席 ${res.summary.present} 人，缺席 ${res.summary.absent} 人`);
+    else showToast("儲存失敗：" + res.error, "error");
+  } catch(e) { showToast("網絡錯誤，請重試", "error"); }
+  finally { btn.disabled = false; btn.textContent = "💾 儲存記錄"; }
+}
+
+// ══ 頁面 2：查閱 ══════════════════════════════════════════════
+async function loadHistory() {
+  const date  = document.getElementById("hist-date").value;
+  const grade = document.getElementById("hist-grade").value;
+  if (!date) { showToast("請選擇日期", "error"); return; }
+
+  const wrap = document.getElementById("hist-result");
+  wrap.innerHTML = `<div class="loading"><div class="spinner"></div>查詢中...</div>`;
+
+  try {
+    const res = await apiGet({ action: "getAttendance", date, grade });
+    if (!res.success) { showToast("查詢失敗", "error"); return; }
+    if (res.records.length === 0) {
+      wrap.innerHTML = `<div class="empty-state"><div class="icon">📭</div><p>該日期暫無記錄</p></div>`;
+      return;
+    }
+    const present = res.records.filter(r => r.status === "出席").length;
+    const absent  = res.records.filter(r => r.status === "缺席").length;
+
+    wrap.innerHTML = `
+      <div class="stats-bar">
+        <div class="stat-chip total">👥 總人數: ${res.records.length}</div>
+        <div class="stat-chip present">✅ 出席: ${present}</div>
+        <div class="stat-chip absent">❌ 缺席: ${absent}</div>
+      </div>
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>日期</th><th>星期</th><th>年級</th><th>姓名</th><th>狀態</th><th>備註</th></tr></thead>
+            <tbody>
+              ${res.records.map(r => `<tr>
+                <td>${r.date}</td><td>${r.weekday}</td>
+                <td><span class="badge badge-grade">${r.grade}</span></td>
+                <td>${r.name}</td>
+                <td><span class="badge ${r.status==='出席'?'badge-present':'badge-absent'}">${r.status}</span></td>
+                <td>
+                  <span style="font-size:12px;color:var(--muted)">${r.remark||''}</span>
+                  <button class="remark-edit-btn" onclick="openAttRemark('${r.date}','${r.grade}','${r.name}','${(r.remark||'').replace(/'/g,"\\'")}')">✏️</button>
+                </td>
+              </tr>`).join("")}
+            </tbody>
+          </table>
+        </div>
+      </div>`;
+  } catch(e) {
+    wrap.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><p>查詢失敗</p></div>`;
+  }
+}
+
+// ══ 頁面 3：學生個人查詢 ══════════════════════════════════════
+async function loadStudentNameOptions() {
+  const grade = document.getElementById("stu-grade").value;
+  const sel   = document.getElementById("stu-name");
+  sel.innerHTML = '<option value="">— 選擇學生 —</option>';
+  if (!grade) return;
+  try {
+    const data = await apiGet({ action: "getStudents", grade });
+    if (data.success) data.students.forEach(s => sel.appendChild(new Option(s.name, s.name)));
+  } catch(e) {}
+}
+
+async function queryStudent() {
+  const grade = document.getElementById("stu-grade").value;
+  const name  = document.getElementById("stu-name").value;
+  const start = document.getElementById("stu-start").value;
+  const end   = document.getElementById("stu-end").value;
+  if (!grade || !name) { showToast("請選擇年級和學生", "error"); return; }
+
+  const wrap = document.getElementById("stu-result");
+  wrap.innerHTML = `<div class="loading"><div class="spinner"></div>查詢中...</div>`;
+
+  try {
+    const res = await apiGet({ action: "getStudentAttendance", grade, name, startDate: start, endDate: end });
+    if (!res.success) { showToast("查詢失敗", "error"); return; }
+
+    const { student, records, summary } = res;
+    const rateColor = summary.rate >= 80 ? "#15803d" : summary.rate >= 60 ? "#d97706" : "#dc2626";
+    const rateCls   = summary.rate >= 80 ? "high" : summary.rate >= 60 ? "medium" : "low";
+
+    // 取學生備註
+    let studentRemark = "";
+    try {
+      const rData = await apiGet({ action: "getStudentRemark", grade, name });
+      if (rData.success) studentRemark = rData.remark || "";
+    } catch(e) {}
+
+    let html = `<div class="card">
+      <div class="student-header">
+        <div class="student-header-avatar">👤</div>
+        <div style="flex:1">
+          <div class="student-header-name">${student.name}</div>
+          <div class="student-header-sub">${student.grade}
+            ${studentRemark ? `｜備註：${studentRemark}` : ""}
+          </div>
+        </div>
+        <button class="btn btn-outline btn-sm" onclick="openStudentRemark('${grade}','${name}','${studentRemark.replace(/'/g,"\\'")}')">✏️ 備註</button>
+      </div>
+
+      <div class="summary-grid">
+        <div class="summary-item">
+          <div class="summary-num" style="color:#15803d">${summary.present}</div>
+          <div class="summary-label">出席天數</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-num" style="color:#dc2626">${summary.absent}</div>
+          <div class="summary-label">缺席天數</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-num" style="color:${rateColor}">${summary.rate}%</div>
+          <div class="summary-label">出席率</div>
+        </div>
+      </div>
+      <div class="progress-bar"><div class="progress-fill ${rateCls}" style="width:${summary.rate}%"></div></div>
+      <div style="font-size:12px;color:var(--muted);margin-top:6px;margin-bottom:14px">
+        查詢期間：${start||"全部"} 至 ${end||"全部"}，共 ${summary.total} 次記錄
+      </div>`;
+
+    if (records.length === 0) {
+      html += `<div class="empty-state"><div class="icon">📭</div><p>此時段沒有出席記錄</p></div>`;
+    } else {
+      const presentDays = records.filter(r => r.status === "出席");
+      const absentDays  = records.filter(r => r.status === "缺席");
+
+      if (presentDays.length > 0) {
+        html += `<div style="font-size:13px;font-weight:700;color:#15803d;margin-bottom:8px">✅ 出席日期（${presentDays.length} 天）</div>
+          <div class="day-chips">`;
+        presentDays.forEach(r => {
+          html += `<span class="day-chip present" title="${r.remark||''}">${r.date} ${r.weekday}</span>`;
+        });
+        html += `</div>`;
+      }
+
+      if (absentDays.length > 0) {
+        html += `<div style="font-size:13px;font-weight:700;color:#dc2626;margin:12px 0 8px">❌ 缺席日期（${absentDays.length} 天）</div>
+          <div class="day-chips">`;
+        absentDays.forEach(r => {
+          html += `<span class="day-chip absent" title="${r.remark||''}">${r.date} ${r.weekday}</span>`;
+        });
+        html += `</div>`;
+      }
+
+      html += `<div class="divider"></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>日期</th><th>星期</th><th>狀態</th><th>備註</th></tr></thead>
+            <tbody>
+              ${records.map(r => `<tr>
+                <td>${r.date}</td><td>${r.weekday}</td>
+                <td><span class="badge ${r.status==='出席'?'badge-present':'badge-absent'}">${r.status}</span></td>
+                <td><span style="font-size:12px;color:var(--muted)">${r.remark||''}</span>
+                  <button class="remark-edit-btn" onclick="openAttRemark('${r.date}','${r.grade}','${r.name}','${(r.remark||'').replace(/'/g,"\\'")}')">✏️</button>
+                </td>
+              </tr>`).join("")}
+            </tbody>
+          </table>
+        </div>`;
+    }
+
+    html += `</div>`;
+    wrap.innerHTML = html;
+  } catch(e) {
+    wrap.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><p>查詢失敗，請重試</p></div>`;
+  }
+}
+
+// ══ 頁面 4：統計 ══════════════════════════════════════════════
+async function loadSummary() {
+  const start = document.getElementById("sum-start").value;
+  const end   = document.getElementById("sum-end").value;
+  const grade = document.getElementById("sum-grade").value;
+  if (!start || !end) { showToast("請選擇日期範圍", "error"); return; }
+
+  const wrap = document.getElementById("sum-result");
+  wrap.innerHTML = `<div class="loading"><div class="spinner"></div>計算中...</div>`;
+
+  try {
+    const res = await apiGet({ action: "getSummary", startDate: start, endDate: end, grade });
+    if (!res.success) { showToast("統計失敗", "error"); return; }
+    if (res.summary.length === 0) {
+      wrap.innerHTML = `<div class="empty-state"><div class="icon">📭</div><p>該範圍內暫無記錄</p></div>`;
+      return;
+    }
+    wrap.innerHTML = `<div class="card">
+      <div class="card-title">📊 出席統計（${start} 至 ${end}，共 ${res.totalDays} 天）</div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>年級</th><th>姓名</th><th>出席</th><th>缺席</th><th>總計</th><th>出席率</th></tr></thead>
+          <tbody>
+            ${res.summary.map(s => {
+              const cls = s.rate >= 80 ? "high" : s.rate >= 60 ? "medium" : "low";
+              const col = s.rate >= 80 ? "#15803d" : s.rate >= 60 ? "#d97706" : "#dc2626";
+              return `<tr>
+                <td><span class="badge badge-grade">${s.grade}</span></td>
+                <td style="font-weight:600">${s.name}</td>
+                <td style="color:#15803d;font-weight:700">${s.present}</td>
+                <td style="color:#dc2626;font-weight:700">${s.absent}</td>
+                <td>${s.total}</td>
+                <td>
+                  <div style="display:flex;align-items:center;gap:8px">
+                    <div class="progress-bar" style="width:80px">
+                      <div class="progress-fill ${cls}" style="width:${s.rate}%"></div>
+                    </div>
+                    <span style="font-weight:700;color:${col}">${s.rate}%</span>
+                  </div>
+                </td>
+              </tr>`;
+            }).join("")}
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+  } catch(e) {
+    wrap.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><p>統計失敗</p></div>`;
+  }
+}
+
+// ══ 頁面 5：管理 ══════════════════════════════════════════════
+async function loadStudentList() {
+  const grade = document.getElementById("mgr-filter-grade")?.value || "";
+  const wrap  = document.getElementById("mgr-list");
+  wrap.innerHTML = `<div class="loading"><div class="spinner"></div>載入中...</div>`;
+  try {
+    const res = await apiGet({ action: "getStudents", grade });
+    if (!res.success) { wrap.innerHTML = "載入失敗"; return; }
+    if (res.students.length === 0) {
+      wrap.innerHTML = `<div class="empty-state"><div class="icon">👤</div><p>暫無學生</p></div>`;
+      return;
+    }
+    wrap.innerHTML = res.students.map(s => `
+      <div class="remark-row">
+        <div style="flex:1">
+          <div class="remark-name">${s.name} <span class="badge badge-grade" style="font-size:11px">${s.grade}</span></div>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px">${s.remark || "<span style='color:#bbb'>無備註</span>"}</div>
+        </div>
+        <button class="remark-edit-btn" onclick="openEditStudent('${s.grade}','${s.name}','${(s.remark||'').replace(/'/g,"\\'")}')">✏️ 編輯</button>
+        <button class="remark-edit-btn" style="color:var(--danger);border-color:#fca5a5" onclick="deleteStudent('${s.grade}','${s.name}')">🗑 刪除</button>
+      </div>`).join("");
+  } catch(e) { wrap.innerHTML = "載入失敗"; }
+}
+
+async function addStudent() {
+  const grade  = document.getElementById("mgr-grade").value;
+  const name   = document.getElementById("mgr-name").value.trim();
+  const remark = document.getElementById("mgr-remark").value.trim();
+  if (!name) { showToast("請輸入學生姓名", "error"); return; }
+  try {
+    const res = await apiPost({ action: "addStudent", grade, name, remark });
+    if (res.success) {
+      showToast(res.message);
+      document.getElementById("mgr-name").value = "";
+      document.getElementById("mgr-remark").value = "";
+      loadStudentList(); loadGrades();
+    } else showToast(res.error, "error");
+  } catch(e) { showToast("操作失敗", "error"); }
+}
+
+async function deleteStudent(grade, name) {
+  if (!confirm(`確定要刪除學生「${grade} ${name}」嗎？`)) return;
+  try {
+    const res = await apiPost({ action: "deleteStudent", grade, name });
+    if (res.success) { showToast(res.message); loadStudentList(); }
+    else showToast(res.error, "error");
+  } catch(e) { showToast("操作失敗", "error"); }
+}
+
+// ══ 編輯學生資料 Modal ═════════════════════════════════════════════
+function openEditStudent(grade, name, remark) {
+  document.getElementById('editOldGrade').value = grade;
+  document.getElementById('editOldName').value  = name;
+  document.getElementById('editNewGrade').value = grade;
+  document.getElementById('editNewName').value  = name;
+  document.getElementById('editNewRemark').value = remark || '';
+  document.getElementById('editStudentModal').classList.add('show');
+}
+
+function closeEditStudentModal() {
+  document.getElementById('editStudentModal').classList.remove('show');
+}
+
+async function saveEditStudent() {
+  const oldGrade  = document.getElementById('editOldGrade').value;
+  const oldName   = document.getElementById('editOldName').value;
+  const newGrade  = document.getElementById('editNewGrade').value;
+  const newName   = document.getElementById('editNewName').value.trim();
+  const newRemark = document.getElementById('editNewRemark').value.trim();
+  if (!newName) { showToast('請輸入學生姓名', 'error'); return; }
+  try {
+    const res = await apiPost({ action: 'updateStudent', oldGrade, oldName, newGrade, newName, newRemark });
+    if (res.success) {
+      showToast(res.message);
+      closeEditStudentModal();
+      loadStudentList();
+      loadGrades();
+    } else showToast(res.error, 'error');
+  } catch(e) { showToast('操作失敗', 'error'); }
+}
+
+// ══ 備註 Modal ════════════════════════════════════════════════
+function openStudentRemark(grade, name, currentRemark) {
+  remarkCtx = { type: "student", grade, name };
+  document.getElementById("remarkModalTitle").textContent = `✏️ ${grade} ${name} — 學生備註`;
+  document.getElementById("remarkInput").value = currentRemark || "";
+  document.getElementById("remarkModal").classList.add("show");
+}
+
+function openAttRemark(date, grade, name, currentRemark) {
+  remarkCtx = { type: "attendance", date, grade, name };
+  document.getElementById("remarkModalTitle").textContent = `✏️ ${date} ${grade} ${name} — 出席備註`;
+  document.getElementById("remarkInput").value = currentRemark || "";
+  document.getElementById("remarkModal").classList.add("show");
+}
+
+function closeRemarkModal() {
+  document.getElementById("remarkModal").classList.remove("show");
+  remarkCtx = null;
+}
+
+async function saveRemark() {
+  if (!remarkCtx) return;
+  const remark = document.getElementById("remarkInput").value.trim();
+  try {
+    let res;
+    if (remarkCtx.type === "student") {
+      res = await apiPost({ action: "updateStudentRemark", grade: remarkCtx.grade, name: remarkCtx.name, remark });
+    } else {
+      res = await apiPost({ action: "updateAttendanceRemark", date: remarkCtx.date, grade: remarkCtx.grade, name: remarkCtx.name, remark });
+    }
+    if (res.success) {
+      showToast("✅ 備註已儲存");
+      closeRemarkModal();
+      if (remarkCtx === null) {
+        // already closed, refresh relevant page
+        loadStudentList();
+        loadHistory();
+      }
+    } else showToast(res.error, "error");
+  } catch(e) { showToast("儲存失敗，請重試", "error"); }
+}
+
+// 點擊 overlay 關閉 modal
+document.getElementById("remarkModal").addEventListener("click", function(e) {
+  if (e.target === this) closeRemarkModal();
+});
+</script>
+</body>
+</html>
