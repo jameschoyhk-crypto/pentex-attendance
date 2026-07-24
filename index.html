@@ -660,7 +660,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
 
   document.getElementById("att-date").value   = todayStr;
-  document.getElementById("hist-date").value  = todayStr;
+  document.getElementById("hist-start").value = formatDate(firstDay);
+  document.getElementById("hist-end").value   = todayStr;
   document.getElementById("stu-start").value  = formatDate(firstDay);
   document.getElementById("stu-end").value    = todayStr;
   document.getElementById("sum-start").value  = formatDate(firstDay);
