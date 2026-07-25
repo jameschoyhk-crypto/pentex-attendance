@@ -645,7 +645,7 @@
 
 <script>
 // ══ 設定 ══════════════════════════════════════════════════════
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwf0fRAhoUtLV-DhRw4Iyl8LlM8TFInzWKmVLft1hkCn5EMjEFP_R2WAaADOXAaPWM/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwTcaDvG0pKbynOEfwZ-QzOGmGRe4ySCusH_Uua7PfcQDQPMk9BcY7G0ir2KbifMwQ/exec";
 
 // ══ 全域狀態 ══════════════════════════════════════════════════
 let currentStudents = [];
@@ -841,6 +841,18 @@ async function saveAttendance() {
   finally { btn.disabled = false; btn.textContent = "💾 儲存記錄"; }
 }
 
+async function updateAttStatus(date, grade, name, status) {
+  try {
+    const res = await apiPost({ action: "updateAttendanceStatus", date, grade, name, status });
+    if (res.success) {
+      showToast("✅ 已更新出席狀態");
+      // 重新載入當前視圖以更新統計
+      if (document.getElementById("page-history").classList.contains("active")) loadHistory();
+      if (document.getElementById("page-student").classList.contains("active")) queryStudent();
+    } else showToast(res.error, "error");
+  } catch(e) { showToast("更新失敗", "error"); }
+}
+
 // ══ 頁面 2：查閱 ══════════════════════════════════════════════
 async function loadHistory() {
   const startDate = document.getElementById("hist-start").value;
@@ -872,19 +884,25 @@ async function loadHistory() {
       <div class="card">
         <div class="table-wrap">
           <table>
-            <thead><tr><th>日期</th><th>星期</th><th>年級</th><th>姓名</th><th>狀態</th><th>備註</th></tr></thead>
-            <tbody>
-              ${res.records.map(r => `<tr>
-                <td>${r.date}</td><td>${r.weekday}</td>
-                <td><span class="badge badge-grade">${r.grade}</span></td>
-                <td>${r.name}</td>
-                <td><span class="badge ${r.status==='出席'?'badge-present':'badge-absent'}">${r.status}</span></td>
-                <td>
-                  <span style="font-size:12px;color:var(--muted)">${r.remark||''}</span>
-                  <button class="remark-edit-btn" onclick="openAttRemark('${r.date}','${r.grade}','${r.name}','${(r.remark||'').replace(/'/g,"\\'")}')">✏️</button>
-                </td>
-              </tr>`).join("")}
-            </tbody>
+            <thead><tr><th>日期</th><th>年級</th><th>姓名</th><th>狀態</th><th>操作</th></tr></thead>
+	            <tbody>
+	              ${res.records.map(r => `<tr>
+	                <td>${r.date}<br><small>${r.weekday}</small></td>
+	                <td><span class="badge badge-grade">${r.grade}</span></td>
+	                <td>${r.name}</td>
+	                <td>
+	                  <select onchange="updateAttStatus('${r.date}','${r.grade}','${r.name}',this.value)" class="badge ${r.status==='出席'?'badge-present':'badge-absent'}" style="border:none; cursor:pointer; width:auto; height:auto; padding:2px 5px;">
+	                    <option value="出席" ${r.status==='出席'?'selected':''}>出席</option>
+	                    <option value="缺席" ${r.status==='缺席'?'selected':''}>缺席</option>
+	                  </select>
+	                </td>
+	                <td>
+	                  <div style="display:flex; gap:5px;">
+	                    <button class="remark-edit-btn" onclick="openAttRemark('${r.date}','${r.grade}','${r.name}','${(r.remark||'').replace(/'/g,"\\'")}')" title="編輯備註">💬</button>
+	                  </div>
+	                </td>
+	              </tr>`).join("")}
+	            </tbody>
           </table>
         </div>
       </div>`;
@@ -989,15 +1007,20 @@ async function queryStudent() {
         <div class="table-wrap">
           <table>
             <thead><tr><th>日期</th><th>星期</th><th>狀態</th><th>備註</th></tr></thead>
-            <tbody>
-              ${records.map(r => `<tr>
-                <td>${r.date}</td><td>${r.weekday}</td>
-                <td><span class="badge ${r.status==='出席'?'badge-present':'badge-absent'}">${r.status}</span></td>
-                <td><span style="font-size:12px;color:var(--muted)">${r.remark||''}</span>
-                  <button class="remark-edit-btn" onclick="openAttRemark('${r.date}','${r.grade}','${r.name}','${(r.remark||'').replace(/'/g,"\\'")}')">✏️</button>
-                </td>
-              </tr>`).join("")}
-            </tbody>
+	            <tbody>
+	              ${records.map(r => `<tr>
+	                <td>${r.date}<br><small>${r.weekday}</small></td>
+	                <td>
+	                  <select onchange="updateAttStatus('${r.date}','${r.grade}','${r.name}',this.value)" class="badge ${r.status==='出席'?'badge-present':'badge-absent'}" style="border:none; cursor:pointer; width:auto; height:auto; padding:2px 5px;">
+	                    <option value="出席" ${r.status==='出席'?'selected':''}>出席</option>
+	                    <option value="缺席" ${r.status==='缺席'?'selected':''}>缺席</option>
+	                  </select>
+	                </td>
+	                <td><span style="font-size:12px;color:var(--muted)">${r.remark||''}</span>
+	                  <button class="remark-edit-btn" onclick="openAttRemark('${r.date}','${r.grade}','${r.name}','${(r.remark||'').replace(/'/g,"\\'")}')">💬</button>
+	                </td>
+	              </tr>`).join("")}
+	            </tbody>
           </table>
         </div>`;
     }
@@ -1173,11 +1196,14 @@ async function saveRemark() {
     }
     if (res.success) {
       showToast("✅ 備註已儲存");
+      const type = remarkCtx.type;
       closeRemarkModal();
-      if (remarkCtx === null) {
-        // already closed, refresh relevant page
+      if (type === "student") {
         loadStudentList();
+        if (document.getElementById("page-student").classList.contains("active")) queryStudent();
+      } else {
         loadHistory();
+        if (document.getElementById("page-student").classList.contains("active")) queryStudent();
       }
     } else showToast(res.error, "error");
   } catch(e) { showToast("儲存失敗，請重試", "error"); }

@@ -99,6 +99,10 @@ function doPost(e) {
     if (action === "updateAttendanceRemark") {
       return corsResponse(updateAttendanceRemark(payload.date, payload.grade, payload.name, payload.remark));
     }
+    // 新增：更新某條出席記錄的狀態
+    if (action === "updateAttendanceStatus") {
+      return corsResponse(updateAttendanceStatus(payload.date, payload.grade, payload.name, payload.status));
+    }
     return corsResponse({ success: false, error: "Unknown action: " + action });
   } catch (err) {
     return corsResponse({ success: false, error: err.message });
@@ -343,6 +347,31 @@ function updateAttendanceRemark(date, grade, name, remark) {
     if (data[i][0] === date && data[i][2] === grade && data[i][3] === name) {
       sheet.getRange(i + 1, 6).setValue(remark || "");
       return { success: true, message: "已更新備註" };
+    }
+  }
+  return { success: false, error: "找不到對應記錄" };
+}
+
+// ── 新增：更新某條出席記錄的狀態 ─────────────────────────────
+function updateAttendanceStatus(date, grade, name, status) {
+  if (!date || !grade || !name || !status) return { success: false, error: "缺少必要參數" };
+
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const sheet = ss.getSheetByName(ATTENDANCE_SHEET);
+  const data = sheet.getDataRange().getValues();
+
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][0] === date && data[i][2] === grade && data[i][3] === name) {
+      const statusCell = sheet.getRange(i + 1, 5);
+      statusCell.setValue(status);
+      if (status === "出席") {
+        statusCell.setBackground("#d9ead3");
+        statusCell.setFontColor("#274e13");
+      } else {
+        statusCell.setBackground("#fce8e6");
+        statusCell.setFontColor("#a61c00");
+      }
+      return { success: true, message: "已更新狀態" };
     }
   }
   return { success: false, error: "找不到對應記錄" };
