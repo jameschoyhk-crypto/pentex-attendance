@@ -194,7 +194,7 @@
   /* ── Modal ── */
   .modal-overlay {
     position: fixed; inset: 0; background: rgba(0,0,0,.5);
-    z-index: 400; display: none; align-items: flex-end; justify-content: center;
+    z-index: 1000; display: none; align-items: flex-end; justify-content: center;
   }
   .modal-overlay.show { display: flex; }
   .modal {
@@ -699,7 +699,12 @@ function switchTab(name, btn) {
   document.getElementById("page-" + name).classList.add("active");
   btn.classList.add("active");
   document.getElementById("navTitle").textContent = pageTitles[name] || "補習社出席系統";
-  if (name === "manage") loadStudentList();
+  if (name === "manage") {
+    // 進入管理頁面時，重置篩選器為「所有年級」並載入
+    const filter = document.getElementById("mgr-filter-grade");
+    if (filter) filter.value = "";
+    loadStudentList();
+  }
 }
 
 // ══ API ═══════════════════════════════════════════════════════
@@ -727,11 +732,15 @@ async function loadGrades() {
   try {
     const data = await apiGet({ action: "getGrades" });
     if (!data.success) return;
-    ["att-grade", "hist-grade", "sum-grade", "stu-grade"].forEach(id => {
+    ["att-grade", "hist-grade", "sum-grade", "stu-grade", "mgr-filter-grade"].forEach(id => {
       const sel = document.getElementById(id);
+      if (!sel) return;
+      const currentVal = sel.value;
       const first = sel.options[0];
-      sel.innerHTML = ""; sel.appendChild(first);
+      sel.innerHTML = ""; 
+      if (first) sel.appendChild(first);
       data.grades.forEach(g => { sel.appendChild(new Option(g, g)); });
+      if (currentVal) sel.value = currentVal;
     });
   } catch(e) {}
 }
@@ -1070,7 +1079,7 @@ async function loadStudentList() {
           <div style="font-size:12px;color:var(--muted);margin-top:2px">${s.remark || "<span style='color:#bbb'>無備註</span>"}</div>
         </div>
         <button class="remark-edit-btn" onclick="openEditStudent('${s.grade}','${s.name}','${(s.remark||'').replace(/'/g,"\\'")}')">✏️ 編輯</button>
-        <button class="remark-edit-btn" style="color:var(--danger);border-color:#fca5a5" onclick="deleteStudent('${s.grade}','${s.name}')">🗑 刪除</button>
+        <button class="remark-edit-btn" style="color:var(--danger);border-color:#fca5a5" onclick="deleteStudent('${s.grade}','${s.name.replace(/'/g,"\\'")}')">🗑 刪除</button>
       </div>`).join("");
   } catch(e) { wrap.innerHTML = "載入失敗"; }
 }
@@ -1092,7 +1101,7 @@ async function addStudent() {
 }
 
 async function deleteStudent(grade, name) {
-  if (!confirm(`確定要刪除學生「${grade} ${name}」嗎？`)) return;
+  if (!window.confirm(`確定要刪除學生「${grade} ${name}」嗎？`)) return;
   try {
     const res = await apiPost({ action: "deleteStudent", grade, name });
     if (res.success) { showToast(res.message); loadStudentList(); }
