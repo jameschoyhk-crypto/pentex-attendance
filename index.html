@@ -194,7 +194,7 @@
   /* ── Modal ── */
   .modal-overlay {
     position: fixed; inset: 0; background: rgba(0,0,0,.5);
-    z-index: 1000; display: none; align-items: flex-end; justify-content: center;
+    z-index: 400; display: none; align-items: flex-end; justify-content: center;
   }
   .modal-overlay.show { display: flex; }
   .modal {
@@ -410,7 +410,7 @@
         </div>
         <div class="form-group">
           <label>年級</label>
-          <select id="att-grade"><option value="">— 選擇年級 —</option></select>
+          <select id="att-grade"><option value="">— 選擇年級 —</option><option value="ALL">全部年級</option></select>
         </div>
       </div>
       <button class="btn btn-primary btn-full" onclick="loadAttendance()">載入學生名單</button>
@@ -645,7 +645,7 @@
 
 <script>
 // ══ 設定 ══════════════════════════════════════════════════════
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwTcaDvG0pKbynOEfwZ-QzOGmGRe4ySCusH_Uua7PfcQDQPMk9BcY7G0ir2KbifMwQ/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwf0fRAhoUtLV-DhRw4Iyl8LlM8TFInzWKmVLft1hkCn5EMjEFP_R2WAaADOXAaPWM/exec";
 
 // ══ 全域狀態 ══════════════════════════════════════════════════
 let currentStudents = [];
@@ -699,12 +699,7 @@ function switchTab(name, btn) {
   document.getElementById("page-" + name).classList.add("active");
   btn.classList.add("active");
   document.getElementById("navTitle").textContent = pageTitles[name] || "補習社出席系統";
-  if (name === "manage") {
-    // 進入管理頁面時，重置篩選器為「所有年級」並載入
-    const filter = document.getElementById("mgr-filter-grade");
-    if (filter) filter.value = "";
-    loadStudentList();
-  }
+  if (name === "manage") loadStudentList();
 }
 
 // ══ API ═══════════════════════════════════════════════════════
@@ -732,15 +727,13 @@ async function loadGrades() {
   try {
     const data = await apiGet({ action: "getGrades" });
     if (!data.success) return;
-    ["att-grade", "hist-grade", "sum-grade", "stu-grade", "mgr-filter-grade"].forEach(id => {
+    ["att-grade", "hist-grade", "sum-grade", "stu-grade"].forEach(id => {
       const sel = document.getElementById(id);
-      if (!sel) return;
-      const currentVal = sel.value;
       const first = sel.options[0];
-      sel.innerHTML = ""; 
-      if (first) sel.appendChild(first);
+      sel.innerHTML = ""; sel.appendChild(first);
+      // att-grade 加入「全部年級」選項
+      if (id === "att-grade") sel.appendChild(new Option("全部年級", "ALL"));
       data.grades.forEach(g => { sel.appendChild(new Option(g, g)); });
-      if (currentVal) sel.value = currentVal;
     });
   } catch(e) {}
 }
@@ -757,15 +750,33 @@ async function loadAttendance() {
   document.getElementById("att-save-wrap").style.display = "none";
 
   try {
-    const [studRes, attRes] = await Promise.all([
-      apiGet({ action: "getStudents", grade }),
-      apiGet({ action: "getAttendance", date, grade })
-    ]);
-    if (!studRes.success) { showToast("載入失敗", "error"); return; }
-
-    currentStudents = studRes.students;
-    attendanceMap   = {};
-    if (attRes.success) attRes.records.forEach(r => { attendanceMap[r.name] = r.status; });
+    if (grade === "ALL") {
+      // 全部年級：分別載入所有年級的學生和出席記錄
+      const gradesRes = await apiGet({ action: "getGrades" });
+      if (!gradesRes.success) { showToast("載入失敗", "error"); return; }
+      const allGrades = gradesRes.grades;
+      const allResults = await Promise.all(allGrades.map(g =>
+        Promise.all([
+          apiGet({ action: "getStudents", grade: g }),
+          apiGet({ action: "getAttendance", date, grade: g })
+        ])
+      ));
+      currentStudents = [];
+      attendanceMap = {};
+      allResults.forEach(([studRes, attRes]) => {
+        if (studRes.success) currentStudents = currentStudents.concat(studRes.students);
+        if (attRes.success) attRes.records.forEach(r => { attendanceMap[r.name] = r.status; });
+      });
+    } else {
+      const [studRes, attRes] = await Promise.all([
+        apiGet({ action: "getStudents", grade }),
+        apiGet({ action: "getAttendance", date, grade })
+      ]);
+      if (!studRes.success) { showToast("載入失敗", "error"); return; }
+      currentStudents = studRes.students;
+      attendanceMap   = {};
+      if (attRes.success) attRes.records.forEach(r => { attendanceMap[r.name] = r.status; });
+    }
 
     renderAttList();
     document.getElementById("att-stats").style.display = "flex";
@@ -830,27 +841,32 @@ async function saveAttendance() {
   if (unmarked.length > 0) {
     if (!confirm(`以下學生未標記：\n${unmarked.map(s=>s.name).join("、")}\n\n確定儲存？`)) return;
   }
-  const records = currentStudents.map(s => ({ name: s.name, status: attendanceMap[s.name] || "缺席", remark: "" }));
   const btn = document.querySelector("#att-save-wrap .btn-success");
   btn.disabled = true; btn.textContent = "儲存中...";
   try {
-    const res = await apiPost({ action: "saveAttendance", date, grade, records });
-    if (res.success) showToast(`✅ 已儲存！出席 ${res.summary.present} 人，缺席 ${res.summary.absent} 人`);
-    else showToast("儲存失敗：" + res.error, "error");
+    if (grade === "ALL") {
+      // 全部年級：按各學生的年級分組儲存
+      const gradeGroups = {};
+      currentStudents.forEach(s => {
+        if (!gradeGroups[s.grade]) gradeGroups[s.grade] = [];
+        gradeGroups[s.grade].push({ name: s.name, status: attendanceMap[s.name] || "缺席", remark: "" });
+      });
+      const results = await Promise.all(
+        Object.entries(gradeGroups).map(([g, recs]) =>
+          apiPost({ action: "saveAttendance", date, grade: g, records: recs })
+        )
+      );
+      const totalPresent = results.reduce((sum, r) => sum + (r.success ? r.summary.present : 0), 0);
+      const totalAbsent  = results.reduce((sum, r) => sum + (r.success ? r.summary.absent  : 0), 0);
+      showToast(`✅ 已儲存！出席 ${totalPresent} 人，缺席 ${totalAbsent} 人`);
+    } else {
+      const records = currentStudents.map(s => ({ name: s.name, status: attendanceMap[s.name] || "缺席", remark: "" }));
+      const res = await apiPost({ action: "saveAttendance", date, grade, records });
+      if (res.success) showToast(`✅ 已儲存！出席 ${res.summary.present} 人，缺席 ${res.summary.absent} 人`);
+      else showToast("儲存失敗：" + res.error, "error");
+    }
   } catch(e) { showToast("網絡錯誤，請重試", "error"); }
   finally { btn.disabled = false; btn.textContent = "💾 儲存記錄"; }
-}
-
-async function updateAttStatus(date, grade, name, status) {
-  try {
-    const res = await apiPost({ action: "updateAttendanceStatus", date, grade, name, status });
-    if (res.success) {
-      showToast("✅ 已更新出席狀態");
-      // 重新載入當前視圖以更新統計
-      if (document.getElementById("page-history").classList.contains("active")) loadHistory();
-      if (document.getElementById("page-student").classList.contains("active")) queryStudent();
-    } else showToast(res.error, "error");
-  } catch(e) { showToast("更新失敗", "error"); }
 }
 
 // ══ 頁面 2：查閱 ══════════════════════════════════════════════
@@ -884,25 +900,19 @@ async function loadHistory() {
       <div class="card">
         <div class="table-wrap">
           <table>
-            <thead><tr><th>日期</th><th>年級</th><th>姓名</th><th>狀態</th><th>操作</th></tr></thead>
-	            <tbody>
-	              ${res.records.map(r => `<tr>
-	                <td>${r.date}<br><small>${r.weekday}</small></td>
-	                <td><span class="badge badge-grade">${r.grade}</span></td>
-	                <td>${r.name}</td>
-	                <td>
-	                  <select onchange="updateAttStatus('${r.date}','${r.grade}','${r.name}',this.value)" class="badge ${r.status==='出席'?'badge-present':'badge-absent'}" style="border:none; cursor:pointer; width:auto; height:auto; padding:2px 5px;">
-	                    <option value="出席" ${r.status==='出席'?'selected':''}>出席</option>
-	                    <option value="缺席" ${r.status==='缺席'?'selected':''}>缺席</option>
-	                  </select>
-	                </td>
-	                <td>
-	                  <div style="display:flex; gap:5px;">
-	                    <button class="remark-edit-btn" onclick="openAttRemark('${r.date}','${r.grade}','${r.name}','${(r.remark||'').replace(/'/g,"\\'")}')" title="編輯備註">💬</button>
-	                  </div>
-	                </td>
-	              </tr>`).join("")}
-	            </tbody>
+            <thead><tr><th>日期</th><th>星期</th><th>年級</th><th>姓名</th><th>狀態</th><th>備註</th></tr></thead>
+            <tbody>
+              ${res.records.map(r => `<tr>
+                <td>${r.date}</td><td>${r.weekday}</td>
+                <td><span class="badge badge-grade">${r.grade}</span></td>
+                <td>${r.name}</td>
+                <td><span class="badge ${r.status==='出席'?'badge-present':'badge-absent'}">${r.status}</span></td>
+                <td>
+                  <span style="font-size:12px;color:var(--muted)">${r.remark||''}</span>
+                  <button class="remark-edit-btn" onclick="openAttRemark('${r.date}','${r.grade}','${r.name}','${(r.remark||'').replace(/'/g,"\\'")}')">✏️</button>
+                </td>
+              </tr>`).join("")}
+            </tbody>
           </table>
         </div>
       </div>`;
@@ -1007,20 +1017,15 @@ async function queryStudent() {
         <div class="table-wrap">
           <table>
             <thead><tr><th>日期</th><th>星期</th><th>狀態</th><th>備註</th></tr></thead>
-	            <tbody>
-	              ${records.map(r => `<tr>
-	                <td>${r.date}<br><small>${r.weekday}</small></td>
-	                <td>
-	                  <select onchange="updateAttStatus('${r.date}','${r.grade}','${r.name}',this.value)" class="badge ${r.status==='出席'?'badge-present':'badge-absent'}" style="border:none; cursor:pointer; width:auto; height:auto; padding:2px 5px;">
-	                    <option value="出席" ${r.status==='出席'?'selected':''}>出席</option>
-	                    <option value="缺席" ${r.status==='缺席'?'selected':''}>缺席</option>
-	                  </select>
-	                </td>
-	                <td><span style="font-size:12px;color:var(--muted)">${r.remark||''}</span>
-	                  <button class="remark-edit-btn" onclick="openAttRemark('${r.date}','${r.grade}','${r.name}','${(r.remark||'').replace(/'/g,"\\'")}')">💬</button>
-	                </td>
-	              </tr>`).join("")}
-	            </tbody>
+            <tbody>
+              ${records.map(r => `<tr>
+                <td>${r.date}</td><td>${r.weekday}</td>
+                <td><span class="badge ${r.status==='出席'?'badge-present':'badge-absent'}">${r.status}</span></td>
+                <td><span style="font-size:12px;color:var(--muted)">${r.remark||''}</span>
+                  <button class="remark-edit-btn" onclick="openAttRemark('${r.date}','${r.grade}','${r.name}','${(r.remark||'').replace(/'/g,"\\'")}')">✏️</button>
+                </td>
+              </tr>`).join("")}
+            </tbody>
           </table>
         </div>`;
     }
@@ -1102,7 +1107,7 @@ async function loadStudentList() {
           <div style="font-size:12px;color:var(--muted);margin-top:2px">${s.remark || "<span style='color:#bbb'>無備註</span>"}</div>
         </div>
         <button class="remark-edit-btn" onclick="openEditStudent('${s.grade}','${s.name}','${(s.remark||'').replace(/'/g,"\\'")}')">✏️ 編輯</button>
-        <button class="remark-edit-btn" style="color:var(--danger);border-color:#fca5a5" onclick="deleteStudent('${s.grade}','${s.name.replace(/'/g,"\\'")}')">🗑 刪除</button>
+        <button class="remark-edit-btn" style="color:var(--danger);border-color:#fca5a5" onclick="deleteStudent('${s.grade}','${s.name}')">🗑 刪除</button>
       </div>`).join("");
   } catch(e) { wrap.innerHTML = "載入失敗"; }
 }
@@ -1124,7 +1129,7 @@ async function addStudent() {
 }
 
 async function deleteStudent(grade, name) {
-  if (!window.confirm(`確定要刪除學生「${grade} ${name}」嗎？`)) return;
+  if (!confirm(`確定要刪除學生「${grade} ${name}」嗎？`)) return;
   try {
     const res = await apiPost({ action: "deleteStudent", grade, name });
     if (res.success) { showToast(res.message); loadStudentList(); }
@@ -1196,14 +1201,11 @@ async function saveRemark() {
     }
     if (res.success) {
       showToast("✅ 備註已儲存");
-      const type = remarkCtx.type;
       closeRemarkModal();
-      if (type === "student") {
+      if (remarkCtx === null) {
+        // already closed, refresh relevant page
         loadStudentList();
-        if (document.getElementById("page-student").classList.contains("active")) queryStudent();
-      } else {
         loadHistory();
-        if (document.getElementById("page-student").classList.contains("active")) queryStudent();
       }
     } else showToast(res.error, "error");
   } catch(e) { showToast("儲存失敗，請重試", "error"); }
