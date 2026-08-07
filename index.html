@@ -625,6 +625,50 @@
   </div>
 </div>
 
+<!-- 修改出席記錄 Modal -->
+<div class="modal-overlay" id="editAttRecordModal">
+  <div class="modal">
+    <div class="modal-title">
+      <span>📝 修改出席記錄</span>
+      <button class="modal-close" onclick="closeEditAttRecordModal()">✕</button>
+    </div>
+    <input type="hidden" id="editAttOldDate">
+    <input type="hidden" id="editAttGrade">
+    <input type="hidden" id="editAttName">
+    <div class="form-row">
+      <div class="form-group">
+        <label>學生年級</label>
+        <input type="text" id="editAttGradeDisplay" disabled style="background:#f3f4f6;color:#6b7280">
+      </div>
+      <div class="form-group">
+        <label>學生姓名</label>
+        <input type="text" id="editAttNameDisplay" disabled style="background:#f3f4f6;color:#6b7280">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>日期（可修改）</label>
+        <input type="date" id="editAttNewDate">
+      </div>
+      <div class="form-group">
+        <label>出席狀態</label>
+        <select id="editAttNewStatus">
+          <option value="出席">✅ 出席</option>
+          <option value="缺席">❌ 缺席</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group" style="margin-bottom:14px">
+      <label>備註（可選）</label>
+      <input type="text" id="editAttNewRemark" placeholder="輸入備註">
+    </div>
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-outline btn-full" onclick="closeEditAttRecordModal()">取消</button>
+      <button class="btn btn-primary btn-full" onclick="saveEditAttRecord()">儲存修改</button>
+    </div>
+  </div>
+</div>
+
 <!-- 備註 Modal -->
 <div class="modal-overlay" id="remarkModal">
   <div class="modal">
@@ -900,7 +944,7 @@ async function loadHistory() {
       <div class="card">
         <div class="table-wrap">
           <table>
-            <thead><tr><th>日期</th><th>星期</th><th>年級</th><th>姓名</th><th>狀態</th><th>備註</th></tr></thead>
+            <thead><tr><th>日期</th><th>星期</th><th>年級</th><th>姓名</th><th>狀態</th><th>備註</th><th>操作</th></tr></thead>
             <tbody>
               ${res.records.map(r => `<tr>
                 <td>${r.date}</td><td>${r.weekday}</td>
@@ -910,6 +954,9 @@ async function loadHistory() {
                 <td>
                   <span style="font-size:12px;color:var(--muted)">${r.remark||''}</span>
                   <button class="remark-edit-btn" onclick="openAttRemark('${r.date}','${r.grade}','${r.name}','${(r.remark||'').replace(/'/g,"\\'")}')">✏️</button>
+                </td>
+                <td>
+                  <button class="remark-edit-btn" style="color:#2563eb;border-color:#93c5fd" onclick="openEditAttRecord('${r.date}','${r.grade}','${r.name}','${r.status}','${(r.remark||'').replace(/'/g,"\\'")}')">📝 修改</button>
                 </td>
               </tr>`).join("")}
             </tbody>
@@ -1215,6 +1262,44 @@ async function saveRemark() {
 document.getElementById("remarkModal").addEventListener("click", function(e) {
   if (e.target === this) closeRemarkModal();
 });
+document.getElementById("editAttRecordModal").addEventListener("click", function(e) {
+  if (e.target === this) closeEditAttRecordModal();
+});
+
+// ══ 修改出席記錄 Modal ═════════════════════════════════════════
+function openEditAttRecord(date, grade, name, status, remark) {
+  document.getElementById('editAttOldDate').value       = date;
+  document.getElementById('editAttGrade').value         = grade;
+  document.getElementById('editAttName').value          = name;
+  document.getElementById('editAttGradeDisplay').value  = grade;
+  document.getElementById('editAttNameDisplay').value   = name;
+  document.getElementById('editAttNewDate').value       = date;
+  document.getElementById('editAttNewStatus').value     = status;
+  document.getElementById('editAttNewRemark').value     = remark || '';
+  document.getElementById('editAttRecordModal').classList.add('show');
+}
+
+function closeEditAttRecordModal() {
+  document.getElementById('editAttRecordModal').classList.remove('show');
+}
+
+async function saveEditAttRecord() {
+  const oldDate   = document.getElementById('editAttOldDate').value;
+  const grade     = document.getElementById('editAttGrade').value;
+  const name      = document.getElementById('editAttName').value;
+  const newDate   = document.getElementById('editAttNewDate').value;
+  const newStatus = document.getElementById('editAttNewStatus').value;
+  const newRemark = document.getElementById('editAttNewRemark').value.trim();
+  if (!newDate) { showToast('請選擇日期', 'error'); return; }
+  try {
+    const res = await apiPost({ action: 'updateAttendanceRecord', oldDate, grade, name, newDate, newStatus, newRemark });
+    if (res.success) {
+      showToast('✅ ' + res.message);
+      closeEditAttRecordModal();
+      loadHistory();
+    } else showToast(res.error, 'error');
+  } catch(e) { showToast('操作失敗，請重試', 'error'); }
+}
 </script>
 </body>
 </html>

@@ -99,9 +99,12 @@ function doPost(e) {
     if (action === "updateAttendanceRemark") {
       return corsResponse(updateAttendanceRemark(payload.date, payload.grade, payload.name, payload.remark));
     }
-    // 新增：更新某條出席記錄的狀態
-    if (action === "updateAttendanceStatus") {
-      return corsResponse(updateAttendanceStatus(payload.date, payload.grade, payload.name, payload.status));
+    // 新增：修改出席記錄（日期、狀態、備註）
+    if (action === "updateAttendanceRecord") {
+      return corsResponse(updateAttendanceRecord(
+        payload.oldDate, payload.grade, payload.name,
+        payload.newDate, payload.newStatus, payload.newRemark
+      ));
     }
     return corsResponse({ success: false, error: "Unknown action: " + action });
   } catch (err) {
@@ -246,12 +249,19 @@ function getStudentAttendance(grade, name, startDate, endDate) {
   for (let i = 1; i < data.length; i++) {
     const row = data[i];
     if (!row[0]) continue;
+    // 將 Date 物件或其他格式統一轉換為 yyyy-MM-dd 字串
+    let rowDate;
+    if (row[0] instanceof Date) {
+      rowDate = Utilities.formatDate(row[0], "Asia/Hong_Kong", "yyyy-MM-dd");
+    } else {
+      rowDate = String(row[0]);
+    }
     if (row[2] !== grade || row[3] !== name) continue;
-    if (startDate && row[0] < startDate) continue;
-    if (endDate && row[0] > endDate) continue;
+    if (startDate && rowDate < startDate) continue;
+    if (endDate && rowDate > endDate) continue;
 
     const rec = {
-      date: row[0], weekday: row[1], status: row[4], remark: row[5] || ""
+      date: rowDate, weekday: row[1], status: row[4], remark: row[5] || ""
     };
     records.push(rec);
     if (row[4] === "出席") presentCount++;
@@ -347,31 +357,6 @@ function updateAttendanceRemark(date, grade, name, remark) {
     if (data[i][0] === date && data[i][2] === grade && data[i][3] === name) {
       sheet.getRange(i + 1, 6).setValue(remark || "");
       return { success: true, message: "已更新備註" };
-    }
-  }
-  return { success: false, error: "找不到對應記錄" };
-}
-
-// ── 新增：更新某條出席記錄的狀態 ─────────────────────────────
-function updateAttendanceStatus(date, grade, name, status) {
-  if (!date || !grade || !name || !status) return { success: false, error: "缺少必要參數" };
-
-  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-  const sheet = ss.getSheetByName(ATTENDANCE_SHEET);
-  const data = sheet.getDataRange().getValues();
-
-  for (let i = 1; i < data.length; i++) {
-    if (data[i][0] === date && data[i][2] === grade && data[i][3] === name) {
-      const statusCell = sheet.getRange(i + 1, 5);
-      statusCell.setValue(status);
-      if (status === "出席") {
-        statusCell.setBackground("#d9ead3");
-        statusCell.setFontColor("#274e13");
-      } else {
-        statusCell.setBackground("#fce8e6");
-        statusCell.setFontColor("#a61c00");
-      }
-      return { success: true, message: "已更新狀態" };
     }
   }
   return { success: false, error: "找不到對應記錄" };
@@ -492,4 +477,38 @@ function deleteStudent(grade, name) {
     }
   }
   return { success: false, error: "找不到該學生" };
+}
+
+// ── 修改出席記錄（日期、狀態、備註）────────────────────────────
+function updateAttendanceRecord(oldDate, grade, name, newDate, newStatus, newRemark) {
+  if (!oldDate || !grade || !name) return { success: false, error: "缺少必要參數" };
+
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const sheet = ss.getSheetByName(ATTENDANCE_SHEET);
+  const data = sheet.getDataRange().getValues();
+  const tz = Session.getScriptTimeZone();
+
+  for (let i = 1; i < data.length; i++) {
+    const rawDate = data[i][0];
+    const rowDate = rawDate instanceof Date
+      ? Utilities.formatDate(rawDate, tz, 'yyyy-MM-dd')
+      : String(rawDate).split('T')[0];
+    const rowGrade = data[i][2];
+    const rowName  = data[i][3];
+
+    if (rowDate === oldDate && rowGrade === grade && rowName === name) {
+      const targetDate = newDate || oldDate;
+      const targetDateObj = new Date(targetDate + 'T00:00:00');
+      const weekdays = ['星期日','星期一','星期二','星期三','星期四','星期五','星期六'];
+      const weekday = weekdays[targetDateObj.getDay()];
+
+      sheet.getRange(i + 1, 1).setValue(targetDate);
+      sheet.getRange(i + 1, 2).setValue(weekday);
+      if (newStatus) sheet.getRange(i + 1, 5).setValue(newStatus);
+      if (newRemark !== undefined) sheet.getRange(i + 1, 6).setValue(newRemark);
+
+      return { success: true, message: `已更新：${grade} ${name} 的記錄` };
+    }
+  }
+  return { success: false, error: "找不到對應的出席記錄" };
 }
