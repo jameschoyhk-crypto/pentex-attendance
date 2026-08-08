@@ -694,6 +694,7 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwf0fRAhoUtLV-DhRw4I
 // ══ 全域狀態 ══════════════════════════════════════════════════
 let currentStudents = [];
 let attendanceMap   = {};
+let remarkMap       = {}; // 簽到時每個學生的當日備註
 let remarkCtx       = null; // { type:"student"|"attendance", grade, name, date? }
 let deferredInstall = null;
 
@@ -807,9 +808,13 @@ async function loadAttendance() {
       ));
       currentStudents = [];
       attendanceMap = {};
+      remarkMap = {};
       allResults.forEach(([studRes, attRes]) => {
         if (studRes.success) currentStudents = currentStudents.concat(studRes.students);
-        if (attRes.success) attRes.records.forEach(r => { attendanceMap[r.name] = r.status; });
+        if (attRes.success) attRes.records.forEach(r => {
+          attendanceMap[r.name] = r.status;
+          if (r.remark) remarkMap[r.name] = r.remark;
+        });
       });
     } else {
       const [studRes, attRes] = await Promise.all([
@@ -819,7 +824,11 @@ async function loadAttendance() {
       if (!studRes.success) { showToast("載入失敗", "error"); return; }
       currentStudents = studRes.students;
       attendanceMap   = {};
-      if (attRes.success) attRes.records.forEach(r => { attendanceMap[r.name] = r.status; });
+      remarkMap       = {};
+      if (attRes.success) attRes.records.forEach(r => {
+        attendanceMap[r.name] = r.status;
+        if (r.remark) remarkMap[r.name] = r.remark;
+      });
     }
 
     renderAttList();
@@ -840,6 +849,7 @@ function renderAttList() {
   wrap.innerHTML = `<div class="att-list">` +
     currentStudents.map(s => {
       const st = attendanceMap[s.name] || "";
+      const rm = remarkMap[s.name] || "";
       const rowCls = st === "出席" ? "present" : st === "缺席" ? "absent" : "";
       return `<div class="student-row ${rowCls}" id="row-${CSS.escape(s.name)}">
         <div class="student-info">
@@ -850,6 +860,9 @@ function renderAttList() {
         <div class="status-btns">
           <button class="status-btn present-btn ${st==='出席'?'active':''}" onclick="setStatus('${s.name}','出席')">✅ 出席</button>
           <button class="status-btn absent-btn ${st==='缺席'?'active':''}" onclick="setStatus('${s.name}','缺席')">❌ 缺席</button>
+        </div>
+        <div style="width:100%;margin-top:6px;padding:0 4px">
+          <input type="text" class="att-remark-input" id="remark-${CSS.escape(s.name)}" value="${rm.replace(/"/g,'&quot;')}" placeholder="備註（如：英文班、數學班）" style="width:100%;padding:6px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;color:#374151;background:#f8fafc" oninput="remarkMap['${s.name}']=this.value">
         </div>
       </div>`;
     }).join("") + `</div>`;
@@ -893,7 +906,7 @@ async function saveAttendance() {
       const gradeGroups = {};
       currentStudents.forEach(s => {
         if (!gradeGroups[s.grade]) gradeGroups[s.grade] = [];
-        gradeGroups[s.grade].push({ name: s.name, status: attendanceMap[s.name] || "缺席", remark: "" });
+        gradeGroups[s.grade].push({ name: s.name, status: attendanceMap[s.name] || "缺席", remark: remarkMap[s.name] || "" });
       });
       const results = await Promise.all(
         Object.entries(gradeGroups).map(([g, recs]) =>
@@ -904,7 +917,7 @@ async function saveAttendance() {
       const totalAbsent  = results.reduce((sum, r) => sum + (r.success ? r.summary.absent  : 0), 0);
       showToast(`✅ 已儲存！出席 ${totalPresent} 人，缺席 ${totalAbsent} 人`);
     } else {
-      const records = currentStudents.map(s => ({ name: s.name, status: attendanceMap[s.name] || "缺席", remark: "" }));
+      const records = currentStudents.map(s => ({ name: s.name, status: attendanceMap[s.name] || "缺席", remark: remarkMap[s.name] || "" }));
       const res = await apiPost({ action: "saveAttendance", date, grade, records });
       if (res.success) showToast(`✅ 已儲存！出席 ${res.summary.present} 人，缺席 ${res.summary.absent} 人`);
       else showToast("儲存失敗：" + res.error, "error");
