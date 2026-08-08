@@ -457,6 +457,10 @@
           <label>年級（可選）</label>
           <select id="hist-grade"><option value="">— 所有年級 —</option></select>
         </div>
+        <div class="form-group">
+          <label>學校（可選）</label>
+          <select id="hist-school"><option value="">— 所有學校 —</option></select>
+        </div>
       </div>
       <button class="btn btn-primary btn-full" onclick="loadHistory()">查詢</button>
     </div>
@@ -515,6 +519,10 @@
           <label>年級（可選）</label>
           <select id="sum-grade"><option value="">— 所有年級 —</option></select>
         </div>
+        <div class="form-group">
+          <label>學校（可選）</label>
+          <select id="sum-school"><option value="">— 所有學校 —</option></select>
+        </div>
       </div>
       <button class="btn btn-primary btn-full" onclick="loadSummary()">生成統計</button>
     </div>
@@ -525,6 +533,24 @@
 
   <!-- ══ 頁面 5：管理 ══ -->
   <div id="page-manage" class="page">
+    <!-- 學校管理 -->
+    <div class="card">
+      <div class="card-title">🏫 學校管理</div>
+      <div class="form-row">
+        <div class="form-group" style="flex:1">
+          <label>學校名稱</label>
+          <input type="text" id="school-name-input" placeholder="輸入學校名稱">
+        </div>
+        <div class="form-group" style="flex:0">
+          <label>&nbsp;</label>
+          <button class="btn btn-success" onclick="addSchool()">➕ 新增</button>
+        </div>
+      </div>
+      <div id="school-list">
+        <div class="loading"><div class="spinner"></div>載入中...</div>
+      </div>
+    </div>
+
     <div class="card">
       <div class="card-title">➕ 新增學生</div>
       <div class="form-row">
@@ -539,6 +565,10 @@
         <div class="form-group">
           <label>學生姓名</label>
           <input type="text" id="mgr-name" placeholder="輸入姓名">
+        </div>
+        <div class="form-group">
+          <label>學校（可選）</label>
+          <select id="mgr-school"><option value="">— 選擇學校 —</option></select>
         </div>
         <div class="form-group">
           <label>備註（可選）</label>
@@ -621,6 +651,27 @@
     <div style="display:flex;gap:10px">
       <button class="btn btn-outline btn-full" onclick="closeEditStudentModal()">取消</button>
       <button class="btn btn-primary btn-full" onclick="saveEditStudent()">儲存修改</button>
+    </div>
+  </div>
+</div>
+
+<!-- 編輯學生學校 Modal -->
+<div class="modal-overlay" id="editSchoolModal">
+  <div class="modal">
+    <div class="modal-title">
+      <span>🏫 設定學生學校</span>
+      <button class="modal-close" onclick="closeEditSchoolModal()">✕</button>
+    </div>
+    <input type="hidden" id="editSchoolGrade">
+    <input type="hidden" id="editSchoolName">
+    <div style="margin-bottom:10px;font-weight:600;color:#374151" id="editSchoolStudentLabel"></div>
+    <div class="form-group" style="margin-bottom:14px">
+      <label>學校</label>
+      <select id="editSchoolSelect"><option value="">— 無學校 —</option></select>
+    </div>
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-outline btn-full" onclick="closeEditSchoolModal()">取消</button>
+      <button class="btn btn-primary btn-full" onclick="saveEditSchool()">儲存</button>
     </div>
   </div>
 </div>
@@ -713,6 +764,7 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("sum-end").value    = todayStr;
 
   loadGrades();
+  loadSchools();
   loadStudentList();
 
   // PWA 安裝提示
@@ -744,7 +796,7 @@ function switchTab(name, btn) {
   document.getElementById("page-" + name).classList.add("active");
   btn.classList.add("active");
   document.getElementById("navTitle").textContent = pageTitles[name] || "補習社出席系統";
-  if (name === "manage") loadStudentList();
+  if (name === "manage") { loadStudentList(); loadSchools(); }
 }
 
 // ══ API ═══════════════════════════════════════════════════════
@@ -784,6 +836,56 @@ async function loadGrades() {
 }
 
 // ══ 頁面 1：簽到 ══════════════════════════════════════════════
+// ══ 載入學校 ═════════════════════════════════════════════════════
+async function loadSchools() {
+  try {
+    const data = await apiGet({ action: "getSchools" });
+    if (!data.success) return;
+    const schools = data.schools;
+    ["hist-school", "sum-school", "mgr-school"].forEach(id => {
+      const sel = document.getElementById(id);
+      if (!sel) return;
+      const first = sel.options[0];
+      sel.innerHTML = ""; sel.appendChild(first);
+      schools.forEach(s => sel.appendChild(new Option(s, s)));
+    });
+    const wrap = document.getElementById("school-list");
+    if (wrap) {
+      if (schools.length === 0) {
+        wrap.innerHTML = `<div class="empty-state"><div class="icon">🏫</div><p>暫無學校，請新增</p></div>`;
+      } else {
+        wrap.innerHTML = schools.map(s => `
+          <div class="remark-row">
+            <div style="flex:1;font-weight:600">${s}</div>
+            <button class="remark-edit-btn" style="color:var(--danger);border-color:#fca5a5" onclick="deleteSchool('${s.replace(/'/g, "\\'")}')">🗑 刪除</button>
+          </div>`).join("");
+      }
+    }
+  } catch(e) {}
+}
+
+async function addSchool() {
+  const name = document.getElementById("school-name-input").value.trim();
+  if (!name) { showToast("請輸入學校名稱", "error"); return; }
+  try {
+    const res = await apiPost({ action: "addSchool", name });
+    if (res.success) {
+      showToast(res.message);
+      document.getElementById("school-name-input").value = "";
+      loadSchools();
+    } else showToast(res.error, "error");
+  } catch(e) { showToast("操作失敗", "error"); }
+}
+
+async function deleteSchool(name) {
+  if (!confirm(`確定要刪除「${name}」？`)) return;
+  try {
+    const res = await apiPost({ action: "deleteSchool", name });
+    if (res.success) { showToast(res.message); loadSchools(); }
+    else showToast(res.error, "error");
+  } catch(e) { showToast("操作失敗", "error"); }
+}
+
 async function loadAttendance() {
   const date  = document.getElementById("att-date").value;
   const grade = document.getElementById("att-grade").value;
@@ -931,6 +1033,7 @@ async function loadHistory() {
   const startDate = document.getElementById("hist-start").value;
   const endDate   = document.getElementById("hist-end").value;
   const grade     = document.getElementById("hist-grade").value;
+  const school    = document.getElementById("hist-school")?.value || "";
   if (!startDate) { showToast("請選擇開始日期", "error"); return; }
   if (!endDate)   { showToast("請選擇結束日期", "error"); return; }
   if (startDate > endDate) { showToast("開始日期不能大於結束日期", "error"); return; }
@@ -939,7 +1042,7 @@ async function loadHistory() {
   wrap.innerHTML = `<div class="loading"><div class="spinner"></div>查詢中...</div>`;
 
   try {
-    const res = await apiGet({ action: "getAttendanceRange", startDate, endDate, grade });
+    const res = await apiGet({ action: "getAttendanceRange", startDate, endDate, grade, school });
     if (!res.success) { showToast("查詢失敗", "error"); return; }
     if (res.records.length === 0) {
       wrap.innerHTML = `<div class="empty-state"><div class="icon">💭</div><p>該日期範圍暫無記錄</p></div>`;
@@ -1163,9 +1266,10 @@ async function loadStudentList() {
     wrap.innerHTML = res.students.map(s => `
       <div class="remark-row">
         <div style="flex:1">
-          <div class="remark-name">${s.name} <span class="badge badge-grade" style="font-size:11px">${s.grade}</span></div>
+          <div class="remark-name">${s.name} <span class="badge badge-grade" style="font-size:11px">${s.grade}</span>${s.school ? `<span style="font-size:11px;color:#2563eb;background:#eff6ff;padding:2px 6px;border-radius:4px;margin-left:4px">🏫 ${s.school}</span>` : ''}</div>
           <div style="font-size:12px;color:var(--muted);margin-top:2px">${s.remark || "<span style='color:#bbb'>無備註</span>"}</div>
         </div>
+        <button class="remark-edit-btn" style="color:#2563eb;border-color:#93c5fd" onclick="openEditSchool('${s.grade}','${s.name}','${(s.school||'').replace(/'/g,"\\'")}')">🏫 學校</button>
         <button class="remark-edit-btn" onclick="openEditStudent('${s.grade}','${s.name}','${(s.remark||'').replace(/'/g,"\\'")}')">✏️ 編輯</button>
         <button class="remark-edit-btn" style="color:var(--danger);border-color:#fca5a5" onclick="deleteStudent('${s.grade}','${s.name}')">🗑 刪除</button>
       </div>`).join("");
@@ -1175,11 +1279,14 @@ async function loadStudentList() {
 async function addStudent() {
   const grade  = document.getElementById("mgr-grade").value;
   const name   = document.getElementById("mgr-name").value.trim();
+  const school = document.getElementById("mgr-school")?.value || "";
   const remark = document.getElementById("mgr-remark").value.trim();
   if (!name) { showToast("請輸入學生姓名", "error"); return; }
   try {
     const res = await apiPost({ action: "addStudent", grade, name, remark });
     if (res.success) {
+      // 新增學生後再更新學校
+      if (school) await apiPost({ action: "updateStudentSchool", grade, name, school });
       showToast(res.message);
       document.getElementById("mgr-name").value = "";
       document.getElementById("mgr-remark").value = "";
@@ -1278,6 +1385,43 @@ document.getElementById("remarkModal").addEventListener("click", function(e) {
 document.getElementById("editAttRecordModal").addEventListener("click", function(e) {
   if (e.target === this) closeEditAttRecordModal();
 });
+document.getElementById("editSchoolModal").addEventListener("click", function(e) {
+  if (e.target === this) closeEditSchoolModal();
+});
+
+// ══ 學生學校 Modal ═════════════════════════════════════════
+async function openEditSchool(grade, name, currentSchool) {
+  document.getElementById('editSchoolGrade').value = grade;
+  document.getElementById('editSchoolName').value  = name;
+  document.getElementById('editSchoolStudentLabel').textContent = `${grade} ${name}`;
+  // 載入學校選單
+  const sel = document.getElementById('editSchoolSelect');
+  sel.innerHTML = '<option value="">— 無學校 —</option>';
+  try {
+    const data = await apiGet({ action: 'getSchools' });
+    if (data.success) data.schools.forEach(s => sel.appendChild(new Option(s, s)));
+  } catch(e) {}
+  sel.value = currentSchool || '';
+  document.getElementById('editSchoolModal').classList.add('show');
+}
+
+function closeEditSchoolModal() {
+  document.getElementById('editSchoolModal').classList.remove('show');
+}
+
+async function saveEditSchool() {
+  const grade  = document.getElementById('editSchoolGrade').value;
+  const name   = document.getElementById('editSchoolName').value;
+  const school = document.getElementById('editSchoolSelect').value;
+  try {
+    const res = await apiPost({ action: 'updateStudentSchool', grade, name, school });
+    if (res.success) {
+      showToast('✅ ' + res.message);
+      closeEditSchoolModal();
+      loadStudentList();
+    } else showToast(res.error, 'error');
+  } catch(e) { showToast('操作失敗，請重試', 'error'); }
+}
 
 // ══ 修改出席記錄 Modal ═════════════════════════════════════════
 function openEditAttRecord(date, grade, name, status, remark) {

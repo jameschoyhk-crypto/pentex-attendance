@@ -6,6 +6,7 @@
 const SPREADSHEET_ID = "1ibit_1LtSGfhaI2NuBIIJwL5fhYIVnM-gRruF44pLak";
 const STUDENTS_SHEET = "學生名單";
 const ATTENDANCE_SHEET = "出席記錄";
+const SCHOOLS_SHEET = "學校名單";
 
 // ── CORS 輔助 ─────────────────────────────────────────────────
 function corsResponse(data) {
@@ -59,8 +60,12 @@ function doGet(e) {
       return corsResponse(getAttendanceRange(
         e.parameter.startDate,
         e.parameter.endDate,
-        e.parameter.grade
+        e.parameter.grade,
+        e.parameter.school
       ));
+    }
+    if (action === "getSchools") {
+      return corsResponse(getSchools());
     }
     return corsResponse({ success: false, error: "Unknown action: " + action });
   } catch (err) {
@@ -106,6 +111,15 @@ function doPost(e) {
         payload.newDate, payload.newStatus, payload.newRemark
       ));
     }
+    if (action === "addSchool") {
+      return corsResponse(addSchool(payload.name));
+    }
+    if (action === "deleteSchool") {
+      return corsResponse(deleteSchool(payload.name));
+    }
+    if (action === "updateStudentSchool") {
+      return corsResponse(updateStudentSchool(payload.grade, payload.name, payload.school));
+    }
     return corsResponse({ success: false, error: "Unknown action: " + action });
   } catch (err) {
     return corsResponse({ success: false, error: err.message });
@@ -141,11 +155,7 @@ function getStudents(grade) {
     const row = data[i];
     if (!row[0] && !row[1]) continue;
     if (grade && row[0] !== grade) continue;
-    students.push({
-      grade: row[0],
-      name: row[1],
-      remark: row[2] || ""
-    });
+        students.push({ grade: row[0], name: row[1], remark: row[2] || "", school: row[3] || "" });
   }
   return { success: true, students };
 }
@@ -363,18 +373,27 @@ function updateAttendanceRemark(date, grade, name, remark) {
 }
 
 // ── 新增：查詢日期範圍內的出席記錄 ────────────────────────────────
-function getAttendanceRange(startDate, endDate, grade) {
+function getAttendanceRange(startDate, endDate, grade, school) {
   if (!startDate || !endDate) return { success: false, error: "請提供開始和結束日期" };
 
   const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
   const sheet = ss.getSheetByName(ATTENDANCE_SHEET);
   const data = sheet.getDataRange().getValues();
 
+  // 建立學生學校映射表
+  const studSheet = ss.getSheetByName(STUDENTS_SHEET);
+  const studData = studSheet.getDataRange().getValues();
+  const schoolMap = {};
+  for (let i = 1; i < studData.length; i++) {
+    if (studData[i][0] && studData[i][1]) {
+      schoolMap[studData[i][0] + '|' + studData[i][1]] = studData[i][3] || '';
+    }
+  }
+
   const records = [];
   for (let i = 1; i < data.length; i++) {
     const row = data[i];
     if (!row[0]) continue;
-    // 將 Date 物件或其他格式統一轉換為 yyyy-MM-dd 字串
     let rowDate;
     if (row[0] instanceof Date) {
       rowDate = Utilities.formatDate(row[0], "Asia/Hong_Kong", "yyyy-MM-dd");
@@ -383,9 +402,12 @@ function getAttendanceRange(startDate, endDate, grade) {
     }
     if (rowDate < startDate || rowDate > endDate) continue;
     if (grade && row[2] !== grade) continue;
+    const studentSchool = schoolMap[row[2] + '|' + row[3]] || '';
+    if (school && studentSchool !== school) continue;
     records.push({
       date: rowDate, weekday: row[1], grade: row[2],
-      name: row[3], status: row[4], remark: row[5] || "", timestamp: row[6] || ""
+      name: row[3], status: row[4], remark: row[5] || "", timestamp: row[6] || "",
+      school: studentSchool
     });
   }
 
@@ -511,4 +533,60 @@ function updateAttendanceRecord(oldDate, grade, name, newDate, newStatus, newRem
     }
   }
   return { success: false, error: "找不到對應的出席記錄" };
+}
+
+// ── 取得學校名單 ──────────────────────────────────────────────
+function getSchools() {
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const sheet = ss.getSheetByName(SCHOOLS_SHEET);
+  if (!sheet) return { success: true, schools: [] };
+  const data = sheet.getDataRange().getValues();
+  const schools = [];
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][0]) schools.push(data[i][0]);
+  }
+  return { success: true, schools };
+}
+
+// ── 新增學校 ──────────────────────────────────────────────────
+function addSchool(name) {
+  if (!name) return { success: false, error: "學校名稱不能為空" };
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const sheet = ss.getSheetByName(SCHOOLS_SHEET);
+  const data = sheet.getDataRange().getValues();
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][0] === name) return { success: false, error: "該學校已存在" };
+  }
+  sheet.appendRow([name]);
+  return { success: true, message: `已新增學校：${name}` };
+}
+
+// ── 刪除學校 ──────────────────────────────────────────────────
+function deleteSchool(name) {
+  if (!name) return { success: false, error: "學校名稱不能為空" };
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const sheet = ss.getSheetByName(SCHOOLS_SHEET);
+  const data = sheet.getDataRange().getValues();
+  for (let i = data.length - 1; i >= 1; i--) {
+    if (data[i][0] === name) {
+      sheet.deleteRow(i + 1);
+      return { success: true, message: `已刪除學校：${name}` };
+    }
+  }
+  return { success: false, error: "找不到該學校" };
+}
+
+// ── 更新學生所屬學校 ──────────────────────────────────────────
+function updateStudentSchool(grade, name, school) {
+  if (!grade || !name) return { success: false, error: "請提供年級和姓名" };
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const sheet = ss.getSheetByName(STUDENTS_SHEET);
+  const data = sheet.getDataRange().getValues();
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][0] === grade && data[i][1] === name) {
+      sheet.getRange(i + 1, 4).setValue(school || "");
+      return { success: true, message: `已更新 ${grade} ${name} 的學校為「${school || "（無）"}」` };
+    }
+  }
+  return { success: false, error: "找不到該學生" };
 }
