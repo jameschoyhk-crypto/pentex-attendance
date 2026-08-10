@@ -17,116 +17,66 @@
     --bg: #f1f5f9; --card: #ffffff; --border: #e2e8f0;
     --text: #1e293b; --muted: #64748b; --radius: 12px;
   }
-  body { font-family: -apple-system, BlinkMacSystemFont, "Noto Sans TC", "PingFang HK", sans-serif;
-         background: var(--bg); color: var(--text); min-height: 100vh;
-         -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
-
-  .navbar {
-    background: var(--primary); color: white;
-    padding: 0 16px; display: flex; align-items: center; gap: 10px;
-    height: 56px; box-shadow: 0 2px 8px rgba(0,0,0,.2);
-    position: sticky; top: 0; z-index: 100;
-  }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Noto Sans TC", "PingFang HK", sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+  .navbar { background: var(--primary); color: white; padding: 0 16px; display: flex; align-items: center; gap: 10px; height: 56px; box-shadow: 0 2px 8px rgba(0,0,0,.2); position: sticky; top: 0; z-index: 100; }
   .navbar-title { font-size: 17px; font-weight: 700; flex: 1; }
-
-  .tab-bar {
-    position: fixed; bottom: 0; left: 0; right: 0;
-    background: white; display: flex; border-top: 1px solid var(--border);
-    z-index: 100; box-shadow: 0 -2px 8px rgba(0,0,0,.08);
-  }
-  .tab-item {
-    flex: 1; display: flex; flex-direction: column; align-items: center;
-    justify-content: center; padding: 8px 4px; cursor: pointer;
-    color: var(--muted); font-size: 11px; gap: 2px;
-    border: none; background: none; -webkit-tap-highlight-color: transparent;
-    transition: color .2s;
-  }
+  .tab-bar { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; border-top: 1px solid var(--border); z-index: 100; box-shadow: 0 -2px 8px rgba(0,0,0,.08); }
+  .tab-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px 4px; cursor: pointer; color: var(--muted); font-size: 11px; gap: 2px; border: none; background: none; -webkit-tap-highlight-color: transparent; transition: color .2s; }
   .tab-item.active { color: var(--primary); }
   .tab-item .ti { font-size: 20px; }
-
   .content { padding: 16px; padding-bottom: 80px; max-width: 720px; margin: 0 auto; min-height: unset; }
   .page { display: none; }
   .page.active { display: block; }
-
-  .card { background: var(--card); border-radius: var(--radius);
-          box-shadow: 0 1px 4px rgba(0,0,0,.08); padding: 18px; margin-bottom: 16px; }
-  .card-title { font-size: 15px; font-weight: 700; margin-bottom: 14px;
-                display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-
+  .card { background: var(--card); border-radius: var(--radius); box-shadow: 0 1px 4px rgba(0,0,0,.08); padding: 18px; margin-bottom: 16px; }
+  .card-title { font-size: 15px; font-weight: 700; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
   label { font-size: 13px; font-weight: 600; color: var(--muted); display: block; margin-bottom: 5px; }
-  select, input[type="date"], input[type="text"], textarea {
-    width: 100%; padding: 10px 12px; border: 1.5px solid var(--border);
-    border-radius: 8px; font-size: 14px; color: var(--text);
-    background: white; transition: border-color .2s; font-family: inherit;
-  }
+  select, input[type="date"], input[type="text"], textarea { width: 100%; padding: 10px 12px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 14px; color: var(--text); background: white; transition: border-color .2s; font-family: inherit; }
   select:focus, input:focus, textarea:focus { outline: none; border-color: var(--primary); }
   textarea { resize: vertical; min-height: 80px; }
   .form-row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
   .form-group { flex: 1; min-width: 140px; }
-
-  .btn { padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 600;
-         cursor: pointer; border: none; transition: all .2s; display: inline-flex;
-         align-items: center; gap: 6px; font-family: inherit;
-         -webkit-tap-highlight-color: transparent; }
+  .btn { padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; border: none; transition: all .2s; display: inline-flex; align-items: center; gap: 6px; font-family: inherit; -webkit-tap-highlight-color: transparent; }
   .btn-primary { background: var(--primary); color: white; }
   .btn-primary:hover { background: var(--primary-dark); }
   .btn-success { background: var(--success); color: white; }
-  .btn-success:hover { background: #15803d; }
   .btn-danger  { background: var(--danger); color: white; }
   .btn-outline { background: white; color: var(--primary); border: 1.5px solid var(--primary); }
   .btn-sm { padding: 6px 14px; font-size: 13px; }
   .btn-full { width: 100%; justify-content: center; }
   .btn:disabled { opacity: .5; cursor: not-allowed; }
-
   .att-list { display: flex; flex-direction: column; gap: 8px; }
-  .student-row {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 12px 14px; border-radius: 10px; border: 1.5px solid var(--border);
-    background: white; transition: border-color .2s; gap: 10px; flex-wrap: wrap;
-  }
+  .student-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; border-radius: 10px; border: 1.5px solid var(--border); background: white; transition: border-color .2s; gap: 10px; flex-wrap: wrap; }
   .student-row.present { border-color: #86efac; background: #f0fdf4; }
   .student-row.absent  { border-color: #fca5a5; background: #fff1f2; }
   .student-info { display: flex; align-items: center; gap: 10px; flex: 1; }
   .student-name { font-size: 15px; font-weight: 600; }
-  .grade-badge { font-size: 11px; font-weight: 700; padding: 2px 8px;
-                 border-radius: 20px; background: #dbeafe; color: #1d4ed8; }
+  .grade-badge { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 20px; background: #dbeafe; color: #1d4ed8; }
   .status-btns { display: flex; gap: 8px; }
-  .status-btn {
-    padding: 6px 16px; border-radius: 8px; font-size: 13px; font-weight: 600;
-    cursor: pointer; border: 1.5px solid transparent; transition: all .2s; font-family: inherit;
-  }
+  .status-btn { padding: 6px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; border: 1.5px solid transparent; transition: all .2s; font-family: inherit; }
   .status-btn.present-btn { border-color: #86efac; color: #15803d; background: white; }
   .status-btn.present-btn.active { background: #16a34a; color: white; border-color: #16a34a; }
   .status-btn.absent-btn  { border-color: #fca5a5; color: #dc2626; background: white; }
   .status-btn.absent-btn.active  { background: #dc2626; color: white; border-color: #dc2626; }
-
   .stats-bar { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
-  .stat-chip { padding: 7px 14px; border-radius: 20px; font-size: 13px; font-weight: 700;
-               display: flex; align-items: center; gap: 5px; }
+  .stat-chip { padding: 7px 14px; border-radius: 20px; font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 5px; }
   .stat-chip.total   { background: #dbeafe; color: #1e40af; }
   .stat-chip.present { background: #dcfce7; color: #15803d; }
   .stat-chip.absent  { background: #fee2e2; color: #b91c1c; }
-  .stat-chip.pending { background: #fef9c3; color: #92400e; }
-
   .table-wrap { overflow-x: auto; }
   table { width: 100%; border-collapse: collapse; font-size: 14px; }
-  th { background: #f8fafc; font-weight: 700; padding: 11px 12px;
-       text-align: left; border-bottom: 2px solid var(--border); white-space: nowrap; }
+  th { background: #f8fafc; font-weight: 700; padding: 11px 12px; text-align: left; border-bottom: 2px solid var(--border); white-space: nowrap; }
   td { padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
   tr:last-child td { border-bottom: none; }
   tr:hover td { background: #f8fafc; }
-
   .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 700; }
   .badge-present { background: #dcfce7; color: #15803d; }
   .badge-absent  { background: #fee2e2; color: #b91c1c; }
   .badge-grade   { background: #dbeafe; color: #1d4ed8; }
-
   .progress-bar { height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden; }
   .progress-fill { height: 100%; border-radius: 4px; transition: width .4s; }
   .progress-fill.high   { background: #16a34a; }
   .progress-fill.medium { background: #d97706; }
   .progress-fill.low    { background: #dc2626; }
-
   .student-header { display: flex; align-items: center; gap: 14px; padding: 16px; background: #eff6ff; border-radius: 10px; margin-bottom: 16px; }
   .student-header-avatar { width: 52px; height: 52px; border-radius: 50%; background: #2563eb; color: white; font-size: 22px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
   .student-header-name { font-size: 20px; font-weight: 700; }
@@ -135,29 +85,24 @@
   .summary-item { background: #f8fafc; border-radius: 10px; padding: 12px 8px; text-align: center; }
   .summary-num  { font-size: 26px; font-weight: 700; }
   .summary-label{ font-size: 11px; color: var(--muted); margin-top: 2px; }
-
   .day-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
   .day-chip { padding: 4px 10px; border-radius: 16px; font-size: 12px; font-weight: 600; }
   .day-chip.present { background: #dcfce7; color: #15803d; }
   .day-chip.absent  { background: #fee2e2; color: #b91c1c; }
-
   .remark-row { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 6px; background: white; }
   .remark-row:hover { background: #f8fafc; }
   .remark-name { font-size: 14px; font-weight: 600; flex: 1; }
   .remark-edit-btn { background: none; border: 1px solid var(--border); border-radius: 6px; padding: 4px 10px; font-size: 12px; cursor: pointer; color: var(--primary); font-family: inherit; white-space: nowrap; }
   .remark-edit-btn:hover { background: #eff6ff; }
-
   .toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) translateY(20px); background: #1e293b; color: white; padding: 12px 20px; border-radius: 8px; font-size: 14px; z-index: 500; opacity: 0; transition: all .3s; white-space: nowrap; pointer-events: none; }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
   .toast.success { background: #16a34a; }
   .toast.error   { background: #dc2626; }
-
   .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 400; display: none; align-items: flex-end; justify-content: center; }
   .modal-overlay.show { display: flex; }
   .modal { background: white; border-radius: 16px 16px 0 0; padding: 20px; width: 100%; max-width: 720px; max-height: 80vh; overflow-y: auto; }
   .modal-title { font-size: 16px; font-weight: 700; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
   .modal-close { background: none; border: none; font-size: 22px; cursor: pointer; color: var(--muted); }
-
   .loading { text-align: center; padding: 40px; color: var(--muted); font-size: 14px; }
   .spinner { width: 34px; height: 34px; border: 3px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin .8s linear infinite; margin: 0 auto 12px; }
   @keyframes spin { to { transform: rotate(360deg); } }
@@ -167,35 +112,19 @@
   .divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
 
   @media (max-width: 599px) {
-    body { min-height: unset; }
-    .form-row { flex-direction: column; }
-    .form-group { min-width: unset; }
+    body { min-height: unset; } .form-row { flex-direction: column; } .form-group { min-width: unset; }
     .content { padding: 14px; padding-bottom: 90px; max-width: 100%; min-height: unset; }
-    .card { padding: 16px; margin-bottom: 14px; }
-    label { font-size: 14px; margin-bottom: 6px; }
-    select, input[type="date"], input[type="text"], textarea { font-size: 16px; padding: 12px 14px; border-radius: 10px; }
-    .btn { padding: 13px 20px; font-size: 15px; border-radius: 10px; }
-    .student-row { padding: 14px 16px; }
-    table { font-size: 14px; }
-    th, td { padding: 10px 10px; }
+    .card { padding: 16px; margin-bottom: 14px; } select, input[type="date"], input[type="text"], textarea { font-size: 16px; padding: 12px 14px; }
+    .btn { padding: 13px 20px; font-size: 15px; } .student-row { padding: 14px 16px; } table { font-size: 14px; } th, td { padding: 10px 10px; }
     .navbar { height: 52px; }
   }
-  @media (min-width: 600px) and (max-width: 1023px) {
-    .content { padding: 20px; padding-bottom: 90px; max-width: 768px; }
-    .form-row { flex-wrap: nowrap; }
-    .form-group { min-width: 180px; }
-  }
   @media (min-width: 1024px) {
-    body { display: flex; flex-direction: column; }
-    .navbar { padding: 0 32px; height: 60px; }
+    body { display: flex; flex-direction: column; } .navbar { padding: 0 32px; height: 60px; }
     .tab-bar { position: fixed; top: 60px; left: 0; bottom: 0; right: auto; width: 180px; flex-direction: column; justify-content: flex-start; border-top: none; border-right: 1px solid var(--border); padding: 16px 0; box-shadow: 2px 0 8px rgba(0,0,0,.06); }
     .tab-item { flex-direction: row; justify-content: flex-start; padding: 13px 20px; font-size: 14px; gap: 12px; border-radius: 0; width: 100%; }
     .tab-item.active { background: #eff6ff; border-left: 3px solid var(--primary); }
     .content { margin-left: 180px; padding: 28px 32px; padding-bottom: 40px; max-width: 960px; }
-    .form-row { flex-wrap: nowrap; gap: 16px; }
-    .form-group { min-width: 200px; }
-    .modal-overlay { align-items: center; }
-    .modal { border-radius: 16px; max-width: 560px; max-height: 85vh; }
+    .form-row { flex-wrap: nowrap; gap: 16px; } .form-group { min-width: 200px; } .modal-overlay { align-items: center; } .modal { border-radius: 16px; max-width: 560px; max-height: 85vh; }
   }
 </style>
 </head>
@@ -206,35 +135,23 @@
   <span class="navbar-title" id="navTitle">補習社出席系統</span>
 </div>
 
-<!-- 新增：全域學校名稱下拉選單數據庫 -->
-<datalist id="schoolListOptions"></datalist>
-
 <div class="content">
   <!-- 簽到頁面 -->
   <div id="page-attendance" class="page active">
     <div class="card">
       <div class="card-title">📋 每日出席登記</div>
       <div class="form-row">
-        <div class="form-group">
-          <label>日期</label>
-          <input type="date" id="att-date">
-        </div>
-        <div class="form-group">
-          <label>年級</label>
-          <select id="att-grade"><option value="">— 所有年級 —</option></select>
-        </div>
+        <div class="form-group"><label>日期</label><input type="date" id="att-date"></div>
+        <div class="form-group"><label>年級</label><select id="att-grade"><option value="">— 所有年級 —</option></select></div>
       </div>
       <button class="btn btn-primary btn-full" onclick="loadAttendance()">載入學生名單</button>
     </div>
-
     <div class="stats-bar" id="att-stats" style="display:none">
       <div class="stat-chip total">👥 總人數: <span id="stat-total">0</span></div>
       <div class="stat-chip present">✅ 出席: <span id="stat-present">0</span></div>
       <div class="stat-chip absent">❌ 缺席: <span id="stat-absent">0</span></div>
     </div>
-    <div id="att-list-wrap">
-      <div class="empty-state"><div class="icon">📝</div><p>請選擇日期和年級，然後按「載入學生名單」</p></div>
-    </div>
+    <div id="att-list-wrap"><div class="empty-state"><div class="icon">📝</div><p>請選擇日期和年級，然後按「載入學生名單」</p></div></div>
     <div id="att-save-wrap" style="display:none; margin-top:4px;">
       <div class="card" style="padding:14px">
         <div style="display:flex;gap:10px;flex-wrap:wrap;">
@@ -251,20 +168,12 @@
     <div class="card">
       <div class="card-title">🔍 查閱出席記錄</div>
       <div class="form-row">
-        <div class="form-group">
-          <label>日期</label>
-          <input type="date" id="hist-date">
-        </div>
-        <div class="form-group">
-          <label>年級（可選）</label>
-          <select id="hist-grade"><option value="">— 所有年級 —</option></select>
-        </div>
+        <div class="form-group"><label>日期</label><input type="date" id="hist-date"></div>
+        <div class="form-group"><label>年級（可選）</label><select id="hist-grade"><option value="">— 所有年級 —</option></select></div>
       </div>
       <button class="btn btn-primary btn-full" onclick="loadHistory()">查詢</button>
     </div>
-    <div id="hist-result">
-      <div class="empty-state"><div class="icon">🔍</div><p>請選擇日期後按「查詢」</p></div>
-    </div>
+    <div id="hist-result"><div class="empty-state"><div class="icon">🔍</div><p>請選擇日期後按「查詢」</p></div></div>
   </div>
 
   <!-- 學生個人查詢 -->
@@ -272,32 +181,16 @@
     <div class="card">
       <div class="card-title">👤 學生個人出席查詢</div>
       <div class="form-row">
-        <div class="form-group">
-          <label>年級</label>
-          <select id="stu-grade" onchange="loadStudentNameOptions()">
-            <option value="">— 所有年級 —</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>學生姓名</label>
-          <select id="stu-name"><option value="">— 選擇學生 —</option></select>
-        </div>
+        <div class="form-group"><label>年級</label><select id="stu-grade" onchange="loadStudentNameOptions()"><option value="">— 所有年級 —</option></select></div>
+        <div class="form-group"><label>學生姓名</label><select id="stu-name"><option value="">— 選擇學生 —</option></select></div>
       </div>
       <div class="form-row">
-        <div class="form-group">
-          <label>開始日期</label>
-          <input type="date" id="stu-start">
-        </div>
-        <div class="form-group">
-          <label>結束日期</label>
-          <input type="date" id="stu-end">
-        </div>
+        <div class="form-group"><label>開始日期</label><input type="date" id="stu-start"></div>
+        <div class="form-group"><label>結束日期</label><input type="date" id="stu-end"></div>
       </div>
       <button class="btn btn-primary btn-full" onclick="queryStudent()">查詢</button>
     </div>
-    <div id="stu-result">
-      <div class="empty-state"><div class="icon">👤</div><p>選擇學生和日期範圍後按「查詢」</p></div>
-    </div>
+    <div id="stu-result"><div class="empty-state"><div class="icon">👤</div><p>選擇學生和日期範圍後按「查詢」</p></div></div>
   </div>
 
   <!-- 統計頁面 -->
@@ -305,30 +198,33 @@
     <div class="card">
       <div class="card-title">📊 出席統計</div>
       <div class="form-row">
-        <div class="form-group">
-          <label>開始日期</label>
-          <input type="date" id="sum-start">
-        </div>
-        <div class="form-group">
-          <label>結束日期</label>
-          <input type="date" id="sum-end">
-        </div>
-        <div class="form-group">
-          <label>年級（可選）</label>
-          <select id="sum-grade"><option value="">— 所有年級 —</option></select>
-        </div>
+        <div class="form-group"><label>開始日期</label><input type="date" id="sum-start"></div>
+        <div class="form-group"><label>結束日期</label><input type="date" id="sum-end"></div>
+        <div class="form-group"><label>年級（可選）</label><select id="sum-grade"><option value="">— 所有年級 —</option></select></div>
       </div>
       <button class="btn btn-primary btn-full" onclick="loadSummary()">生成統計</button>
     </div>
-    <div id="sum-result">
-      <div class="empty-state"><div class="icon">📊</div><p>請選擇日期範圍後按「生成統計」</p></div>
-    </div>
+    <div id="sum-result"><div class="empty-state"><div class="icon">📊</div><p>請選擇日期範圍後按「生成統計」</p></div></div>
   </div>
 
   <!-- 管理頁面 -->
   <div id="page-manage" class="page">
+    
+    <!-- 1️⃣ 獨立新增學校 -->
     <div class="card">
-      <div class="card-title">➕ 新增學生</div>
+      <div class="card-title">🏫 獨立新增學校名稱</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>新學校名稱</label>
+          <input type="text" id="mgr-new-school-name" placeholder="輸入全新學校名稱 (將加入下拉選單)">
+        </div>
+      </div>
+      <button id="btnAddSchool" class="btn btn-primary btn-full" onclick="addNewSchool()">➕ 加入學校庫</button>
+    </div>
+
+    <!-- 2️⃣ 新增學生 -->
+    <div class="card">
+      <div class="card-title">➕ 新增學生 (配對學校)</div>
       <div class="form-row">
         <div class="form-group">
           <label>年級</label>
@@ -343,9 +239,8 @@
           <input type="text" id="mgr-name" placeholder="輸入姓名">
         </div>
         <div class="form-group">
-          <label>學校</label>
-          <!-- 加上 list 屬性，支援打字同下拉選擇 -->
-          <input type="text" id="mgr-school" placeholder="打字新增 或 點擊下拉選擇" list="schoolListOptions">
+          <label>學校配對</label>
+          <select id="mgr-school"><option value="">— 選擇學校 (可留空) —</option></select>
         </div>
         <div class="form-group">
           <label>備註（可選）</label>
@@ -355,8 +250,9 @@
       <button class="btn btn-success btn-full" onclick="addStudent()">➕ 新增學生</button>
     </div>
 
+    <!-- 3️⃣ 學生名單管理 -->
     <div class="card">
-      <div class="card-title">📝 學生名單及學校管理</div>
+      <div class="card-title">📝 學生名單管理</div>
       <div class="form-row" style="margin-bottom:12px">
         <div class="form-group">
           <label>篩選年級</label>
@@ -394,7 +290,7 @@
 <!-- Toast -->
 <div class="toast" id="toast"></div>
 
-<!-- 編輯 Modal (備註及學校) -->
+<!-- 編輯 Modal (備註及學校下拉選單) -->
 <div class="modal-overlay" id="remarkModal">
   <div class="modal">
     <div class="modal-title">
@@ -402,9 +298,8 @@
       <button class="modal-close" onclick="closeRemarkModal()">✕</button>
     </div>
     <div class="form-group" style="margin-bottom:10px" id="modalSchoolGroup">
-      <label>學校名稱</label>
-      <!-- 加上 list 屬性，支援打字同下拉選擇 -->
-      <input type="text" id="schoolInput" placeholder="打字新增 或 點擊下拉選擇" list="schoolListOptions">
+      <label>重新配對學校</label>
+      <select id="schoolInput"><option value="">— 選擇學校 (可留空) —</option></select>
     </div>
     <div class="form-group" style="margin-bottom:14px">
       <label>備註內容</label>
@@ -418,10 +313,8 @@
 </div>
 
 <script>
-// ══ 設定 ══════════════════════════════════════════════════════
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwjZawLumGiZ6ISotBAK5XnOKceT7KDrthhB8EuwTtXF831yr6Ep78UTYK_3nX14Io/exec";
 
-// ══ 全域狀態 ══════════════════════════════════════════════════
 let currentStudents = [];
 let attendanceMap   = {};
 let remarkCtx       = null; 
@@ -453,21 +346,10 @@ function switchTab(name, btn) {
   if (name === "manage") { loadSchools(); loadStudentList(); }
 }
 
-async function apiGet(params) {
-  const url = SCRIPT_URL + "?" + new URLSearchParams(params);
-  const res = await fetch(url);
-  return res.json();
-}
-async function apiPost(body) {
-  const res = await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify(body) });
-  return res.json();
-}
+async function apiGet(params) { const url = SCRIPT_URL + "?" + new URLSearchParams(params); const res = await fetch(url); return res.json(); }
+async function apiPost(body) { const res = await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify(body) }); return res.json(); }
 function formatDate(d) { return d.toISOString().split("T")[0]; }
-function showToast(msg, type = "success") {
-  const t = document.getElementById("toast");
-  t.textContent = msg; t.className = `toast ${type} show`;
-  setTimeout(() => t.className = "toast", 3000);
-}
+function showToast(msg, type = "success") { const t = document.getElementById("toast"); t.textContent = msg; t.className = `toast ${type} show`; setTimeout(() => t.className = "toast", 3000); }
 
 async function loadGrades() {
   try {
@@ -488,60 +370,61 @@ async function loadSchools() {
     const data = await apiGet({ action: "getSchools" });
     if (!data.success) return;
     
-    // 更新「篩選學校」下拉選單
-    const sel = document.getElementById("mgr-filter-school");
-    const first = sel.options[0];
-    sel.innerHTML = ""; sel.appendChild(first);
+    const filterSel = document.getElementById("mgr-filter-school");
+    const addSel = document.getElementById("mgr-school");
+    const editSel = document.getElementById("schoolInput");
     
-    // 更新「學校輸入框」的可輸入式下拉清單 (Combo Box)
-    const datalist = document.getElementById("schoolListOptions");
-    datalist.innerHTML = "";
+    filterSel.innerHTML = '<option value="">— 所有學校 —</option>';
+    addSel.innerHTML = '<option value="">— 選擇學校 (可留空) —</option>';
+    editSel.innerHTML = '<option value="">— 選擇學校 (可留空) —</option>';
     
     data.schools.forEach(s => { 
       if(s) {
-        // 加入篩選選單
-        sel.appendChild(new Option(s, s)); 
-        // 加入 Combo Box 選單
-        const opt = document.createElement('option');
-        opt.value = s;
-        datalist.appendChild(opt);
+        filterSel.appendChild(new Option(s, s)); 
+        addSel.appendChild(new Option(s, s)); 
+        editSel.appendChild(new Option(s, s)); 
       }
     });
   } catch(e) {}
+}
+
+async function addNewSchool() {
+  const schoolName = document.getElementById("mgr-new-school-name").value.trim();
+  if (!schoolName) { showToast("請輸入學校名稱", "error"); return; }
+  
+  const btn = document.getElementById("btnAddSchool");
+  btn.disabled = true; btn.textContent = "加入中...";
+  try {
+    const res = await apiPost({ action: "addSchool", schoolName });
+    if (res.success) {
+      showToast(res.message);
+      document.getElementById("mgr-new-school-name").value = "";
+      loadSchools(); // 自動刷新下拉選單
+    } else showToast(res.error, "error");
+  } catch(e) { showToast("操作失敗", "error"); }
+  finally { btn.disabled = false; btn.textContent = "➕ 加入學校庫"; }
 }
 
 async function loadAttendance() {
   const date  = document.getElementById("att-date").value;
   const grade = document.getElementById("att-grade").value;
   if (!date) { showToast("請選擇日期", "error"); return; }
-
   const wrap = document.getElementById("att-list-wrap");
   wrap.innerHTML = `<div class="loading"><div class="spinner"></div>載入中...</div>`;
   document.getElementById("att-stats").style.display = "none";
   document.getElementById("att-save-wrap").style.display = "none";
-
   try {
-    const [studRes, attRes] = await Promise.all([
-      apiGet({ action: "getStudents", grade }),
-      apiGet({ action: "getAttendance", date, grade })
-    ]);
+    const [studRes, attRes] = await Promise.all([ apiGet({ action: "getStudents", grade }), apiGet({ action: "getAttendance", date, grade }) ]);
     if (!studRes.success) { showToast("載入失敗", "error"); return; }
-    currentStudents = studRes.students;
-    attendanceMap   = {};
+    currentStudents = studRes.students; attendanceMap = {};
     if (attRes.success) attRes.records.forEach(r => { attendanceMap[r.name] = r.status; });
-    renderAttList();
-    document.getElementById("att-stats").style.display = "flex";
-    document.getElementById("att-save-wrap").style.display = "block";
-    updateStats();
+    renderAttList(); document.getElementById("att-stats").style.display = "flex"; document.getElementById("att-save-wrap").style.display = "block"; updateStats();
   } catch(e) { wrap.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><p>載入失敗，請重試</p></div>`; }
 }
 
 function renderAttList() {
   const wrap = document.getElementById("att-list-wrap");
-  if (currentStudents.length === 0) {
-    wrap.innerHTML = `<div class="empty-state"><div class="icon">👤</div><p>此選項暫無學生</p></div>`;
-    return;
-  }
+  if (currentStudents.length === 0) { wrap.innerHTML = `<div class="empty-state"><div class="icon">👤</div><p>此選項暫無學生</p></div>`; return; }
   wrap.innerHTML = `<div class="att-list">` +
     currentStudents.map(s => {
       const st = attendanceMap[s.name] || "";
@@ -549,10 +432,7 @@ function renderAttList() {
       return `<div class="student-row ${rowCls}" id="row-${CSS.escape(s.name)}">
         <div class="student-info">
           <span class="grade-badge">${s.grade}</span>
-          <div>
-             <div class="student-name">${s.name}</div>
-             ${s.school ? `<div style="font-size:11px;color:var(--muted)">🏫 ${s.school}</div>` : ""}
-          </div>
+          <div><div class="student-name">${s.name}</div>${s.school ? `<div style="font-size:11px;color:var(--muted)">🏫 ${s.school}</div>` : ""}</div>
         </div>
         <div class="status-btns">
           <button class="status-btn present-btn ${st==='出席'?'active':''}" onclick="setStatus('${s.name}','出席')">✅ 出席</button>
@@ -572,34 +452,25 @@ function setStatus(name, status) {
   }
   updateStats();
 }
-
 function markAll(status) { currentStudents.forEach(s => setStatus(s.name, status)); }
-
 function updateStats() {
-  const total   = currentStudents.length;
-  const present = currentStudents.filter(s => attendanceMap[s.name] === "出席").length;
-  const absent  = currentStudents.filter(s => attendanceMap[s.name] === "缺席").length;
-  document.getElementById("stat-total").textContent   = total;
-  document.getElementById("stat-present").textContent = present;
-  document.getElementById("stat-absent").textContent  = absent;
+  document.getElementById("stat-total").textContent   = currentStudents.length;
+  document.getElementById("stat-present").textContent = currentStudents.filter(s => attendanceMap[s.name] === "出席").length;
+  document.getElementById("stat-absent").textContent  = currentStudents.filter(s => attendanceMap[s.name] === "缺席").length;
 }
 
 async function saveAttendance() {
   const date  = document.getElementById("att-date").value;
   const grade = document.getElementById("att-grade").value;
   const unmarked = currentStudents.filter(s => !attendanceMap[s.name]);
-  if (unmarked.length > 0) {
-    if (!confirm(`以下學生未標記：\n${unmarked.map(s=>s.name).join("、")}\n\n確定儲存？`)) return;
-  }
+  if (unmarked.length > 0) if (!confirm(`以下學生未標記：\n${unmarked.map(s=>s.name).join("、")}\n\n確定儲存？`)) return;
   const records = currentStudents.map(s => ({ grade: s.grade, name: s.name, status: attendanceMap[s.name] || "缺席", remark: "" }));
   const btn = document.querySelector("#att-save-wrap .btn-success");
   btn.disabled = true; btn.textContent = "儲存中...";
   try {
     const res = await apiPost({ action: "saveAttendance", date, grade, records });
-    if (res.success) showToast(`✅ 已儲存！出席 ${res.summary.present} 人，缺席 ${res.summary.absent} 人`);
-    else showToast("儲存失敗：" + res.error, "error");
-  } catch(e) { showToast("網絡錯誤，請重試", "error"); }
-  finally { btn.disabled = false; btn.textContent = "💾 儲存記錄"; }
+    if (res.success) showToast(`✅ 已儲存！`); else showToast("儲存失敗：" + res.error, "error");
+  } catch(e) { showToast("網絡錯誤", "error"); } finally { btn.disabled = false; btn.textContent = "💾 儲存記錄"; }
 }
 
 async function loadHistory() {
@@ -613,29 +484,11 @@ async function loadHistory() {
     if (!res.success) { showToast("查詢失敗", "error"); return; }
     if (res.records.length === 0) { wrap.innerHTML = `<div class="empty-state"><div class="icon">📭</div><p>該日期暫無記錄</p></div>`; return; }
     const present = res.records.filter(r => r.status === "出席").length;
-    const absent  = res.records.filter(r => r.status === "缺席").length;
-    wrap.innerHTML = `
-      <div class="stats-bar">
-        <div class="stat-chip total">👥 總人數: ${res.records.length}</div>
-        <div class="stat-chip present">✅ 出席: ${present}</div>
-        <div class="stat-chip absent">❌ 缺席: ${absent}</div>
-      </div>
-      <div class="card"><div class="table-wrap"><table>
-        <thead><tr><th>日期</th><th>星期</th><th>年級</th><th>姓名</th><th>狀態</th><th>操作</th></tr></thead>
-        <tbody>
-          ${res.records.map(r => `<tr>
-            <td>${r.date}</td><td>${r.weekday}</td>
-            <td><span class="badge badge-grade">${r.grade}</span></td>
-            <td>${r.name}</td>
-            <td><span class="badge ${r.status==='出席'?'badge-present':'badge-absent'}">${r.status}</span></td>
-            <td>
-              <span style="font-size:12px;color:var(--muted)">${r.remark||''}</span>
-              <button class="remark-edit-btn" onclick="openAttRemark('${r.date}','${r.grade}','${r.name}','${(r.remark||'').replace(/'/g,"\\'")}')">✏️ 備註</button>
-              <button class="remark-edit-btn" style="color:#d97706; border-color:#fcd34d; margin-left:5px;" onclick="quickChangeStatus('${r.date}', '${r.grade}', '${r.name}', '${r.status}')">🔄 轉狀態</button>
-            </td>
-          </tr>`).join("")}
-        </tbody>
-      </table></div></div>`;
+    wrap.innerHTML = `<div class="stats-bar"><div class="stat-chip total">👥 總人數: ${res.records.length}</div><div class="stat-chip present">✅ 出席: ${present}</div><div class="stat-chip absent">❌ 缺席: ${res.records.length - present}</div></div>
+      <div class="card"><div class="table-wrap"><table><thead><tr><th>日期</th><th>星期</th><th>年級</th><th>姓名</th><th>狀態</th><th>操作</th></tr></thead><tbody>
+          ${res.records.map(r => `<tr><td>${r.date}</td><td>${r.weekday}</td><td><span class="badge badge-grade">${r.grade}</span></td><td>${r.name}</td><td><span class="badge ${r.status==='出席'?'badge-present':'badge-absent'}">${r.status}</span></td>
+            <td><span style="font-size:12px;color:var(--muted)">${r.remark||''}</span><button class="remark-edit-btn" onclick="openAttRemark('${r.date}','${r.grade}','${r.name}','${(r.remark||'').replace(/'/g,"\\'")}')">✏️ 備註</button><button class="remark-edit-btn" style="color:#d97706; border-color:#fcd34d; margin-left:5px;" onclick="quickChangeStatus('${r.date}', '${r.grade}', '${r.name}', '${r.status}')">🔄 轉狀態</button></td>
+          </tr>`).join("")}</tbody></table></div></div>`;
   } catch(e) { wrap.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><p>查詢失敗</p></div>`; }
 }
 
@@ -643,10 +496,7 @@ async function loadStudentNameOptions() {
   const grade = document.getElementById("stu-grade").value;
   const sel   = document.getElementById("stu-name");
   sel.innerHTML = '<option value="">— 選擇學生 —</option>';
-  try {
-    const data = await apiGet({ action: "getStudents", grade });
-    if (data.success) data.students.forEach(s => sel.appendChild(new Option(s.name, s.name)));
-  } catch(e) {}
+  try { const data = await apiGet({ action: "getStudents", grade }); if (data.success) data.students.forEach(s => sel.appendChild(new Option(s.name, s.name))); } catch(e) {}
 }
 
 async function queryStudent() {
@@ -657,111 +507,49 @@ async function queryStudent() {
   if (!name) { showToast("請選擇學生姓名", "error"); return; }
   const wrap = document.getElementById("stu-result");
   wrap.innerHTML = `<div class="loading"><div class="spinner"></div>查詢中...</div>`;
-
   try {
     const res = await apiGet({ action: "getStudentAttendance", grade, name, startDate: start, endDate: end });
     if (!res.success) { showToast("查詢失敗", "error"); return; }
     const { student, records, summary } = res;
     const rateColor = summary.rate >= 80 ? "#15803d" : summary.rate >= 60 ? "#d97706" : "#dc2626";
     const rateCls   = summary.rate >= 80 ? "high" : summary.rate >= 60 ? "medium" : "low";
-
     let studentRemark = "", studentSchool = "";
-    try {
-      const rData = await apiGet({ action: "getStudentInfo", grade: student.grade, name });
-      if (rData.success) { studentRemark = rData.remark || ""; studentSchool = rData.school || ""; }
-    } catch(e) {}
-
-    let html = `<div class="card">
-      <div class="student-header">
-        <div class="student-header-avatar">👤</div>
-        <div style="flex:1">
-          <div class="student-header-name">${student.name}</div>
-          <div class="student-header-sub">${student.grade}
-            ${studentSchool ? `｜🏫 ${studentSchool}` : ""}
-            ${studentRemark ? `｜📝 ${studentRemark}` : ""}
-          </div>
-        </div>
-        <button class="btn btn-outline btn-sm" onclick="openStudentInfo('${student.grade}','${name}','${studentRemark.replace(/'/g,"\\'")}', '${studentSchool.replace(/'/g,"\\'")}')">✏️ 編輯</button>
-      </div>
-      <div class="summary-grid">
-        <div class="summary-item"><div class="summary-num" style="color:#15803d">${summary.present}</div><div class="summary-label">出席天數</div></div>
-        <div class="summary-item"><div class="summary-num" style="color:#dc2626">${summary.absent}</div><div class="summary-label">缺席天數</div></div>
-        <div class="summary-item"><div class="summary-num" style="color:${rateColor}">${summary.rate}%</div><div class="summary-label">出席率</div></div>
-      </div>
-      <div class="progress-bar"><div class="progress-fill ${rateCls}" style="width:${summary.rate}%"></div></div>
-      <div style="font-size:12px;color:var(--muted);margin-top:6px;margin-bottom:14px">
-        查詢期間：${start||"全部"} 至 ${end||"全部"}，共 ${summary.total} 次記錄
-      </div>`;
-
+    try { const rData = await apiGet({ action: "getStudentInfo", grade: student.grade, name }); if (rData.success) { studentRemark = rData.remark || ""; studentSchool = rData.school || ""; } } catch(e) {}
+    let html = `<div class="card"><div class="student-header"><div class="student-header-avatar">👤</div><div style="flex:1"><div class="student-header-name">${student.name}</div><div class="student-header-sub">${student.grade} ${studentSchool ? `｜🏫 ${studentSchool}` : ""} ${studentRemark ? `｜📝 ${studentRemark}` : ""}</div></div><button class="btn btn-outline btn-sm" onclick="openStudentInfo('${student.grade}','${name}','${studentRemark.replace(/'/g,"\\'")}', '${studentSchool.replace(/'/g,"\\'")}')">✏️ 編輯</button></div>
+      <div class="summary-grid"><div class="summary-item"><div class="summary-num" style="color:#15803d">${summary.present}</div><div class="summary-label">出席天數</div></div><div class="summary-item"><div class="summary-num" style="color:#dc2626">${summary.absent}</div><div class="summary-label">缺席天數</div></div><div class="summary-item"><div class="summary-num" style="color:${rateColor}">${summary.rate}%</div><div class="summary-label">出席率</div></div></div>
+      <div class="progress-bar"><div class="progress-fill ${rateCls}" style="width:${summary.rate}%"></div></div><div style="font-size:12px;color:var(--muted);margin-top:6px;margin-bottom:14px">查詢期間：${start||"全部"} 至 ${end||"全部"}，共 ${summary.total} 次記錄</div>`;
     if (records.length === 0) { html += `<div class="empty-state"><div class="icon">📭</div><p>此時段沒有出席記錄</p></div>`; } 
     else {
-      const presentDays = records.filter(r => r.status === "出席");
-      const absentDays  = records.filter(r => r.status === "缺席");
-      if (presentDays.length > 0) {
-        html += `<div style="font-size:13px;font-weight:700;color:#15803d;margin-bottom:8px">✅ 出席日期（${presentDays.length} 天）</div><div class="day-chips">`;
-        presentDays.forEach(r => html += `<span class="day-chip present" title="${r.remark||''}">${r.date} ${r.weekday}</span>`);
-        html += `</div>`;
-      }
-      if (absentDays.length > 0) {
-        html += `<div style="font-size:13px;font-weight:700;color:#dc2626;margin:12px 0 8px">❌ 缺席日期（${absentDays.length} 天）</div><div class="day-chips">`;
-        absentDays.forEach(r => html += `<span class="day-chip absent" title="${r.remark||''}">${r.date} ${r.weekday}</span>`);
-        html += `</div>`;
-      }
-      html += `<div class="divider"></div><div class="table-wrap"><table>
-        <thead><tr><th>日期</th><th>星期</th><th>狀態</th><th>操作</th></tr></thead>
-        <tbody>
-          ${records.map(r => `<tr>
-            <td>${r.date}</td><td>${r.weekday}</td>
-            <td><span class="badge ${r.status==='出席'?'badge-present':'badge-absent'}">${r.status}</span></td>
-            <td><span style="font-size:12px;color:var(--muted)">${r.remark||''}</span>
-              <button class="remark-edit-btn" onclick="openAttRemark('${r.date}','${student.grade}','${student.name}','${(r.remark||'').replace(/'/g,"\\'")}')">✏️ 備註</button>
-              <button class="remark-edit-btn" style="color:#d97706; border-color:#fcd34d; margin-left:5px;" onclick="quickChangeStatus('${r.date}', '${student.grade}', '${student.name}', '${r.status}')">🔄 轉狀態</button>
-            </td>
-          </tr>`).join("")}
-        </tbody>
-      </table></div>`;
+      const pDays = records.filter(r => r.status === "出席"), aDays  = records.filter(r => r.status === "缺席");
+      if (pDays.length > 0) { html += `<div style="font-size:13px;font-weight:700;color:#15803d;margin-bottom:8px">✅ 出席日期（${pDays.length} 天）</div><div class="day-chips">`; pDays.forEach(r => html += `<span class="day-chip present" title="${r.remark||''}">${r.date} ${r.weekday}</span>`); html += `</div>`; }
+      if (aDays.length > 0) { html += `<div style="font-size:13px;font-weight:700;color:#dc2626;margin:12px 0 8px">❌ 缺席日期（${aDays.length} 天）</div><div class="day-chips">`; aDays.forEach(r => html += `<span class="day-chip absent" title="${r.remark||''}">${r.date} ${r.weekday}</span>`); html += `</div>`; }
+      html += `<div class="divider"></div><div class="table-wrap"><table><thead><tr><th>日期</th><th>星期</th><th>狀態</th><th>操作</th></tr></thead><tbody>
+          ${records.map(r => `<tr><td>${r.date}</td><td>${r.weekday}</td><td><span class="badge ${r.status==='出席'?'badge-present':'badge-absent'}">${r.status}</span></td><td><span style="font-size:12px;color:var(--muted)">${r.remark||''}</span><button class="remark-edit-btn" onclick="openAttRemark('${r.date}','${student.grade}','${student.name}','${(r.remark||'').replace(/'/g,"\\'")}')">✏️ 備註</button><button class="remark-edit-btn" style="color:#d97706; border-color:#fcd34d; margin-left:5px;" onclick="quickChangeStatus('${r.date}', '${student.grade}', '${student.name}', '${r.status}')">🔄 轉狀態</button></td></tr>`).join("")}
+        </tbody></table></div>`;
     }
-    html += `</div>`;
-    wrap.innerHTML = html;
-  } catch(e) { wrap.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><p>查詢失敗，請重試</p></div>`; }
+    wrap.innerHTML = html + `</div>`;
+  } catch(e) { wrap.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><p>查詢失敗</p></div>`; }
 }
 
 async function loadSummary() {
-  const start = document.getElementById("sum-start").value;
-  const end   = document.getElementById("sum-end").value;
-  const grade = document.getElementById("sum-grade").value;
+  const start = document.getElementById("sum-start").value, end = document.getElementById("sum-end").value, grade = document.getElementById("sum-grade").value;
   if (!start || !end) { showToast("請選擇日期範圍", "error"); return; }
-  const wrap = document.getElementById("sum-result");
-  wrap.innerHTML = `<div class="loading"><div class="spinner"></div>計算中...</div>`;
+  const wrap = document.getElementById("sum-result"); wrap.innerHTML = `<div class="loading"><div class="spinner"></div>計算中...</div>`;
   try {
     const res = await apiGet({ action: "getSummary", startDate: start, endDate: end, grade });
     if (!res.success) { showToast("統計失敗", "error"); return; }
     if (res.summary.length === 0) { wrap.innerHTML = `<div class="empty-state"><div class="icon">📭</div><p>該範圍內暫無記錄</p></div>`; return; }
-    wrap.innerHTML = `<div class="card"><div class="card-title">📊 出席統計（${start} 至 ${end}，共 ${res.totalDays} 天）</div><div class="table-wrap"><table>
-      <thead><tr><th>年級</th><th>姓名</th><th>出席</th><th>缺席</th><th>總計</th><th>出席率</th></tr></thead>
-      <tbody>
+    wrap.innerHTML = `<div class="card"><div class="card-title">📊 出席統計（${start} 至 ${end}，共 ${res.totalDays} 天）</div><div class="table-wrap"><table><thead><tr><th>年級</th><th>姓名</th><th>出席</th><th>缺席</th><th>總計</th><th>出席率</th></tr></thead><tbody>
         ${res.summary.map(s => {
-          const cls = s.rate >= 80 ? "high" : s.rate >= 60 ? "medium" : "low";
-          const col = s.rate >= 80 ? "#15803d" : s.rate >= 60 ? "#d97706" : "#dc2626";
-          return `<tr>
-            <td><span class="badge badge-grade">${s.grade}</span></td>
-            <td style="font-weight:600">${s.name}</td>
-            <td style="color:#15803d;font-weight:700">${s.present}</td>
-            <td style="color:#dc2626;font-weight:700">${s.absent}</td>
-            <td>${s.total}</td>
-            <td><div style="display:flex;align-items:center;gap:8px"><div class="progress-bar" style="width:80px"><div class="progress-fill ${cls}" style="width:${s.rate}%"></div></div><span style="font-weight:700;color:${col}">${s.rate}%</span></div></td>
-          </tr>`;
-        }).join("")}
-      </tbody>
-    </table></div></div>`;
+          const cls = s.rate >= 80 ? "high" : s.rate >= 60 ? "medium" : "low", col = s.rate >= 80 ? "#15803d" : s.rate >= 60 ? "#d97706" : "#dc2626";
+          return `<tr><td><span class="badge badge-grade">${s.grade}</span></td><td style="font-weight:600">${s.name}</td><td style="color:#15803d;font-weight:700">${s.present}</td><td style="color:#dc2626;font-weight:700">${s.absent}</td><td>${s.total}</td><td><div style="display:flex;align-items:center;gap:8px"><div class="progress-bar" style="width:80px"><div class="progress-fill ${cls}" style="width:${s.rate}%"></div></div><span style="font-weight:700;color:${col}">${s.rate}%</span></div></td></tr>`;
+        }).join("")}</tbody></table></div></div>`;
   } catch(e) { wrap.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><p>統計失敗</p></div>`; }
 }
 
 async function loadStudentList() {
-  const grade = document.getElementById("mgr-filter-grade")?.value || "";
-  const school = document.getElementById("mgr-filter-school")?.value || "";
-  const wrap  = document.getElementById("mgr-list");
-  wrap.innerHTML = `<div class="loading"><div class="spinner"></div>載入中...</div>`;
+  const grade = document.getElementById("mgr-filter-grade")?.value || "", school = document.getElementById("mgr-filter-school")?.value || "";
+  const wrap  = document.getElementById("mgr-list"); wrap.innerHTML = `<div class="loading"><div class="spinner"></div>載入中...</div>`;
   try {
     const res = await apiGet({ action: "getStudents", grade, school });
     if (!res.success) { wrap.innerHTML = "載入失敗"; return; }
@@ -780,20 +568,13 @@ async function loadStudentList() {
 }
 
 async function addStudent() {
-  const grade  = document.getElementById("mgr-grade").value;
-  const name   = document.getElementById("mgr-name").value.trim();
-  const remark = document.getElementById("mgr-remark").value.trim();
-  const school = document.getElementById("mgr-school").value.trim();
+  const grade = document.getElementById("mgr-grade").value, name = document.getElementById("mgr-name").value.trim();
+  const remark = document.getElementById("mgr-remark").value.trim(), school = document.getElementById("mgr-school").value;
   if (!name) { showToast("請輸入學生姓名", "error"); return; }
   try {
     const res = await apiPost({ action: "addStudent", grade, name, remark, school });
-    if (res.success) {
-      showToast(res.message);
-      document.getElementById("mgr-name").value = "";
-      document.getElementById("mgr-remark").value = "";
-      document.getElementById("mgr-school").value = "";
-      loadStudentList(); loadGrades(); loadSchools();
-    } else showToast(res.error, "error");
+    if (res.success) { showToast(res.message); document.getElementById("mgr-name").value = ""; document.getElementById("mgr-remark").value = ""; document.getElementById("mgr-school").value = ""; loadStudentList(); loadGrades(); } 
+    else showToast(res.error, "error");
   } catch(e) { showToast("操作失敗", "error"); }
 }
 
@@ -801,8 +582,7 @@ async function deleteStudent(grade, name) {
   if (!confirm(`確定要刪除學生「${grade} ${name}」嗎？`)) return;
   try {
     const res = await apiPost({ action: "deleteStudent", grade, name });
-    if (res.success) { showToast(res.message); loadStudentList(); }
-    else showToast(res.error, "error");
+    if (res.success) { showToast(res.message); loadStudentList(); } else showToast(res.error, "error");
   } catch(e) { showToast("操作失敗", "error"); }
 }
 
@@ -819,41 +599,26 @@ function openAttRemark(date, grade, name, currentRemark) {
   remarkCtx = { type: "attendance", date, grade, name };
   document.getElementById("remarkModalTitle").textContent = `✏️ ${date} ${name} — 出席備註`;
   document.getElementById("remarkInput").value = currentRemark || "";
-  document.getElementById("schoolInput").value = "";
   document.getElementById("modalSchoolGroup").style.display = "none";
   document.getElementById("remarkModal").classList.add("show");
 }
 
-function closeRemarkModal() {
-  document.getElementById("remarkModal").classList.remove("show");
-  remarkCtx = null;
-}
+function closeRemarkModal() { document.getElementById("remarkModal").classList.remove("show"); remarkCtx = null; }
 
 async function saveRemark() {
   if (!remarkCtx) return;
   const remark = document.getElementById("remarkInput").value.trim();
-  const school = document.getElementById("schoolInput").value.trim();
+  const school = document.getElementById("schoolInput").value;
   try {
     let res;
-    if (remarkCtx.type === "student") {
-      res = await apiPost({ action: "updateStudentInfo", grade: remarkCtx.grade, name: remarkCtx.name, remark, school });
-    } else {
-      res = await apiPost({ action: "updateAttendanceRemark", date: remarkCtx.date, grade: remarkCtx.grade, name: remarkCtx.name, remark });
-    }
-    if (res.success) {
-      showToast("✅ 已儲存");
-      closeRemarkModal();
-      if (remarkCtx === null) {
-        loadStudentList(); loadHistory();
-        if (document.getElementById("page-student").classList.contains("active")) queryStudent();
-      }
-    } else showToast(res.error, "error");
+    if (remarkCtx.type === "student") res = await apiPost({ action: "updateStudentInfo", grade: remarkCtx.grade, name: remarkCtx.name, remark, school });
+    else res = await apiPost({ action: "updateAttendanceRemark", date: remarkCtx.date, grade: remarkCtx.grade, name: remarkCtx.name, remark });
+    if (res.success) { showToast("✅ 已儲存"); closeRemarkModal(); if (remarkCtx === null) { loadStudentList(); loadHistory(); if (document.getElementById("page-student").classList.contains("active")) queryStudent(); } } 
+    else showToast(res.error, "error");
   } catch(e) { showToast("儲存失敗，請重試", "error"); }
 }
 
-document.getElementById("remarkModal").addEventListener("click", function(e) {
-  if (e.target === this) closeRemarkModal();
-});
+document.getElementById("remarkModal").addEventListener("click", function(e) { if (e.target === this) closeRemarkModal(); });
 
 async function quickChangeStatus(date, grade, name, currentStatus) {
   const newStatus = currentStatus === "出席" ? "缺席" : "出席";
@@ -861,12 +626,9 @@ async function quickChangeStatus(date, grade, name, currentStatus) {
   showToast("更新中...", "success");
   try {
     const res = await apiPost({ action: "updateAttendanceStatus", date, grade, name, status: newStatus });
-    if (res.success) {
-      showToast("✅ " + res.message);
-      if (document.getElementById("page-history").classList.contains("active")) loadHistory();
-      else if (document.getElementById("page-student").classList.contains("active")) queryStudent();
-    } else showToast(res.error, "error");
-  } catch (e) { showToast("更新失敗，請檢查網絡", "error"); }
+    if (res.success) { showToast("✅ " + res.message); if (document.getElementById("page-history").classList.contains("active")) loadHistory(); else if (document.getElementById("page-student").classList.contains("active")) queryStudent(); } 
+    else showToast(res.error, "error");
+  } catch (e) { showToast("更新失敗", "error"); }
 }
 </script>
 </body>
