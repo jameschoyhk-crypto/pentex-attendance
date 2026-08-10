@@ -229,12 +229,7 @@
 
   /* ══════════════════════════════════════
      響應式設計 — 三個裝置斷點
-     手機  : < 600px
-     iPad  : 600px – 1024px
-     電腦  : > 1024px
   ══════════════════════════════════════ */
-
-  /* ── 手機（預設，< 600px）── */
   @media (max-width: 599px) {
     body { min-height: unset; }
     .form-row { flex-direction: column; }
@@ -269,7 +264,6 @@
     .remark-text { font-size: 14px; }
   }
 
-  /* ── iPad / 平板（600px – 1023px）── */
   @media (min-width: 600px) and (max-width: 1023px) {
     .content { padding: 20px; padding-bottom: 90px; max-width: 768px; }
     .form-row { flex-wrap: nowrap; }
@@ -287,7 +281,6 @@
     .modal-overlay { align-items: center; }
   }
 
-  /* ── 電腦（≥ 1024px）── */
   @media (min-width: 1024px) {
     body { display: flex; flex-direction: column; }
     .navbar { padding: 0 32px; height: 60px; }
@@ -356,7 +349,7 @@
         </div>
         <div class="form-group">
           <label>年級</label>
-          <select id="att-grade"><option value="">— 選擇年級 —</option></select>
+          <select id="att-grade"><option value="">— 所有年級 —</option></select>
         </div>
       </div>
       <button class="btn btn-primary btn-full" onclick="loadAttendance()">載入學生名單</button>
@@ -413,7 +406,7 @@
         <div class="form-group">
           <label>年級</label>
           <select id="stu-grade" onchange="loadStudentNameOptions()">
-            <option value="">— 選擇年級 —</option>
+            <option value="">— 所有年級 —</option>
           </select>
         </div>
         <div class="form-group">
@@ -638,6 +631,8 @@ async function loadGrades() {
       sel.innerHTML = ""; sel.appendChild(first);
       data.grades.forEach(g => { sel.appendChild(new Option(g, g)); });
     });
+    // 預設載入一次全校名單落去姓名選單度
+    loadStudentNameOptions();
   } catch(e) {}
 }
 
@@ -645,7 +640,7 @@ async function loadGrades() {
 async function loadAttendance() {
   const date  = document.getElementById("att-date").value;
   const grade = document.getElementById("att-grade").value;
-  if (!date || !grade) { showToast("請選擇日期和年級", "error"); return; }
+  if (!date) { showToast("請選擇日期", "error"); return; } // 放寬年級檢查
 
   const wrap = document.getElementById("att-list-wrap");
   wrap.innerHTML = `<div class="loading"><div class="spinner"></div>載入中...</div>`;
@@ -675,7 +670,7 @@ async function loadAttendance() {
 function renderAttList() {
   const wrap = document.getElementById("att-list-wrap");
   if (currentStudents.length === 0) {
-    wrap.innerHTML = `<div class="empty-state"><div class="icon">👤</div><p>此年級暫無學生</p></div>`;
+    wrap.innerHTML = `<div class="empty-state"><div class="icon">👤</div><p>此選項暫無學生</p></div>`;
     return;
   }
   wrap.innerHTML = `<div class="att-list">` +
@@ -726,7 +721,8 @@ async function saveAttendance() {
   if (unmarked.length > 0) {
     if (!confirm(`以下學生未標記：\n${unmarked.map(s=>s.name).join("、")}\n\n確定儲存？`)) return;
   }
-  const records = currentStudents.map(s => ({ name: s.name, status: attendanceMap[s.name] || "缺席", remark: "" }));
+  // 將 grade 綁埋入去 records 方便後端處理「所有年級」
+  const records = currentStudents.map(s => ({ grade: s.grade, name: s.name, status: attendanceMap[s.name] || "缺席", remark: "" }));
   const btn = document.querySelector("#att-save-wrap .btn-success");
   btn.disabled = true; btn.textContent = "儲存中...";
   try {
@@ -792,7 +788,7 @@ async function loadStudentNameOptions() {
   const grade = document.getElementById("stu-grade").value;
   const sel   = document.getElementById("stu-name");
   sel.innerHTML = '<option value="">— 選擇學生 —</option>';
-  if (!grade) return;
+  // 移除咗 grade 限制，容許載入所有學生
   try {
     const data = await apiGet({ action: "getStudents", grade });
     if (data.success) data.students.forEach(s => sel.appendChild(new Option(s.name, s.name)));
@@ -804,7 +800,7 @@ async function queryStudent() {
   const name  = document.getElementById("stu-name").value;
   const start = document.getElementById("stu-start").value;
   const end   = document.getElementById("stu-end").value;
-  if (!grade || !name) { showToast("請選擇年級和學生", "error"); return; }
+  if (!name) { showToast("請選擇學生姓名", "error"); return; } // 放寬年級限制
 
   const wrap = document.getElementById("stu-result");
   wrap.innerHTML = `<div class="loading"><div class="spinner"></div>查詢中...</div>`;
@@ -833,7 +829,7 @@ async function queryStudent() {
             ${studentRemark ? `｜備註：${studentRemark}` : ""}
           </div>
         </div>
-        <button class="btn btn-outline btn-sm" onclick="openStudentRemark('${grade}','${name}','${studentRemark.replace(/'/g,"\\'")}')">✏️ 備註</button>
+        <button class="btn btn-outline btn-sm" onclick="openStudentRemark('${student.grade}','${name}','${studentRemark.replace(/'/g,"\\'")}')">✏️ 備註</button>
       </div>
 
       <div class="summary-grid">
@@ -888,8 +884,8 @@ async function queryStudent() {
                 <td>${r.date}</td><td>${r.weekday}</td>
                 <td><span class="badge ${r.status==='出席'?'badge-present':'badge-absent'}">${r.status}</span></td>
                 <td><span style="font-size:12px;color:var(--muted)">${r.remark||''}</span>
-                  <button class="remark-edit-btn" onclick="openAttRemark('${r.date}','${r.grade}','${r.name}','${(r.remark||'').replace(/'/g,"\\'")}')">✏️</button>
-                  <button class="remark-edit-btn" style="color:#d97706; border-color:#fcd34d; margin-left:5px;" onclick="quickChangeStatus('${r.date}', '${r.grade}', '${r.name}', '${r.status}')">🔄 轉狀態</button>
+                  <button class="remark-edit-btn" onclick="openAttRemark('${r.date}','${student.grade}','${student.name}','${(r.remark||'').replace(/'/g,"\\'")}')">✏️</button>
+                  <button class="remark-edit-btn" style="color:#d97706; border-color:#fcd34d; margin-left:5px;" onclick="quickChangeStatus('${r.date}', '${student.grade}', '${student.name}', '${r.status}')">🔄 轉狀態</button>
                 </td>
               </tr>`).join("")}
             </tbody>
@@ -1051,7 +1047,7 @@ document.getElementById("remarkModal").addEventListener("click", function(e) {
   if (e.target === this) closeRemarkModal();
 });
 
-// ══ 新增：快速轉換單一學生出席狀態 ═════════════════════════════════
+// ══ 快速轉換單一學生出席狀態 ═════════════════════════════════
 async function quickChangeStatus(date, grade, name, currentStatus) {
   const newStatus = currentStatus === "出席" ? "缺席" : "出席";
   if (!confirm(`確定要將 ${name} 在 ${date} 的記錄改為「${newStatus}」嗎？`)) return;
@@ -1062,7 +1058,6 @@ async function quickChangeStatus(date, grade, name, currentStatus) {
     const res = await apiPost({ action: "updateAttendanceStatus", date, grade, name, status: newStatus });
     if (res.success) {
       showToast("✅ " + res.message);
-      // 自動重新載入當前畫面，顯示最新狀態
       if (document.getElementById("page-history").classList.contains("active")) {
         loadHistory();
       } else if (document.getElementById("page-student").classList.contains("active")) {
