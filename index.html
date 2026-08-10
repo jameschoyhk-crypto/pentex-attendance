@@ -206,6 +206,9 @@
   <span class="navbar-title" id="navTitle">補習社出席系統</span>
 </div>
 
+<!-- 新增：全域學校名稱下拉選單數據庫 -->
+<datalist id="schoolListOptions"></datalist>
+
 <div class="content">
   <!-- 簽到頁面 -->
   <div id="page-attendance" class="page active">
@@ -341,7 +344,8 @@
         </div>
         <div class="form-group">
           <label>學校</label>
-          <input type="text" id="mgr-school" placeholder="輸入學校名稱">
+          <!-- 加上 list 屬性，支援打字同下拉選擇 -->
+          <input type="text" id="mgr-school" placeholder="打字新增 或 點擊下拉選擇" list="schoolListOptions">
         </div>
         <div class="form-group">
           <label>備註（可選）</label>
@@ -399,7 +403,8 @@
     </div>
     <div class="form-group" style="margin-bottom:10px" id="modalSchoolGroup">
       <label>學校名稱</label>
-      <input type="text" id="schoolInput" placeholder="輸入學校名稱">
+      <!-- 加上 list 屬性，支援打字同下拉選擇 -->
+      <input type="text" id="schoolInput" placeholder="打字新增 或 點擊下拉選擇" list="schoolListOptions">
     </div>
     <div class="form-group" style="margin-bottom:14px">
       <label>備註內容</label>
@@ -482,10 +487,26 @@ async function loadSchools() {
   try {
     const data = await apiGet({ action: "getSchools" });
     if (!data.success) return;
+    
+    // 更新「篩選學校」下拉選單
     const sel = document.getElementById("mgr-filter-school");
     const first = sel.options[0];
     sel.innerHTML = ""; sel.appendChild(first);
-    data.schools.forEach(s => { sel.appendChild(new Option(s, s)); });
+    
+    // 更新「學校輸入框」的可輸入式下拉清單 (Combo Box)
+    const datalist = document.getElementById("schoolListOptions");
+    datalist.innerHTML = "";
+    
+    data.schools.forEach(s => { 
+      if(s) {
+        // 加入篩選選單
+        sel.appendChild(new Option(s, s)); 
+        // 加入 Combo Box 選單
+        const opt = document.createElement('option');
+        opt.value = s;
+        datalist.appendChild(opt);
+      }
+    });
   } catch(e) {}
 }
 
